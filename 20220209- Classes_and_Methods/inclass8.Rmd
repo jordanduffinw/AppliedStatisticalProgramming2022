@@ -1,0 +1,58 @@
+---
+title: "Applied Statistical Programming - Methods and Classes"
+date: "2/9/2022"
+header-includes:
+   - \usepackage{amsmath}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\textbf{Write the R code to answer the following questions. Write the code, and then show what the computer returns when that code is run. Thoroughly comment your solutions.}
+
+You have until the beginning of class 2/14 at 10:00am to answer all of the questions below. You may use R, but not any online documentation. Submit the Rmarkdown and the knitted PDF to Canvas. Only one member of your group needs to submit the in class exercise, but everyone's names need to be included on the submitted document.
+
+\section*{The Animal Kingdom}
+
+In this exercise, you will demonstrate knowledge of the S3 version of object-oriented programming using methods and classes. To do this, you will model creatures from the animal kingdom with different traits.
+
+Consider five animals: a \texttt{cat}, a \texttt{dog}, a \texttt{cow}, a \texttt{cobra}, and an \texttt{iguana}. The first three of these are \texttt{mammal}s, and the latter two of these are \texttt{reptile}s. 
+
+Every animal in the list can \texttt{eat} something (carnivor, herbivor, omnivore) and make \texttt{noise}. Each animal makes different noises.
+
+1. With your group, decide how to define a class for \texttt{mammal} and \texttt{reptile} with common features for each. Create a constructor and a validator for each class
+
+
+
+```{r tidy=TRUE}
+# Code
+```
+
+
+2. Now create each of the five animals listed above appropriately differentiating each (e.g., they should all make different noises and be assigned to the correct class).  
+
+```{r tidy=TRUE}
+# Code
+```
+
+
+3. Create a generic method called `replicate`.  This function should work only to then call the appropriate method.
+```{r tidy=TRUE}
+# Code
+```
+
+4. Create a `mammal` and `reptile` method for `replicate`.  For mammals it should print out, "I have given live birth to offspring or am a monotreme!"  For reptiles it should say, "I have laid some eggs or possibly am ovoviviparous or viviparous."
+
+
+```{r tidy=TRUE}
+# Code
+```
+
+5. Create a method for `print` called `print.animal`.  The output should include the noise. (Be creative.)  Assign the class `animal` to your `cow` (it should then have two classes `mammal` and `animal`) and then call `print`.  What does it do? Why?
+
+
+```{r tidy=TRUE}
+# Code
+```

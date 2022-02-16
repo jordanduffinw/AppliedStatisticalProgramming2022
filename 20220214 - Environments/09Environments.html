@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Environments</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Environments
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Politcal Science</em></div>
+### Lecture 9
+
+---
+
+
+
+## Orientation
+
+**Last time**
+
+
+1. Classes
+  + What's a class for?
+  + S3 classes
+  + Methods and generics
+    
+
+--
+
+**Today**
+
+1. Environments
+  + Basic concept
+  + Packages and environments
+  + Functions and environments
+  + Some tricks
+  
+
+--
+
+**Next**
+
+1. The `apply` family
+
+
+---
+
+
+## Scoping and environments
+
+- I have previously mentioned "scoping" in R (remember vegas)
+- Generally confusing that some parts of R can't "see" other parts
+
+
+
+```r
+x&lt;-200
+f&lt;-function(x){
+  x&lt;-x+1
+  return(x)
+}
+f(x) # do something to x
+```
+
+```
+## [1] 201
+```
+
+```r
+x # but nothing has changed!
+```
+
+```
+## [1] 200
+```
+
+
+---
+
+And sometimes you have functions that share a name but do different things!
+
+
+```r
+# Let's use a function
+die&lt;-1:6
+sample(die, 2) # Roll a die twice
+```
+
+```
+## [1] 2 5
+```
+
+```r
+sample&lt;-function(x, ...){return("Would you like to try some of this wine?")}
+sample(die, 2) # Now it does something else!
+```
+
+```
+## [1] "Would you like to try some of this wine?"
+```
+
+--
+
+
+How does R know what to do in these cases?  And what is this?
+
+```r
+base::sample(die, 2)
+```
+
+```
+## [1] 5 2
+```
+
+
+---
+
+## What's an environment?
+
+- Loosely speaking, an 'environment' is the local neighborhood an R object lives in (and remember that all functions are objects).
+- An object will **first** look around for objects in it's own environment.
+- If it's not there, it will look through other environments in a specific order.
+- The various environment have a strict order.
+
+
+---
+
+We can think of an environment as an objects "neighborhood".
+
+
+
+```r
+# Can you tell me how to get .... 
+library(rlang)
+sesame.street&lt;-env(
+                elmo="Elmo wants a cookie.",
+                cookie="Me want cookie!",
+                count="I count one cookie.  Mwhahahaha!"
+                )
+sesame.street # standard printing  doesn't help
+```
+
+```
+## &lt;environment: 0x7fe0248aa8a0&gt;
+```
+
+```r
+env_print(sesame.street) # rlang provides a way to help out
+```
+
+```
+## &lt;environment: 0x7fe0248aa8a0&gt;
+## parent: &lt;environment: global&gt;
+## bindings:
+##  * count: &lt;chr&gt;
+##  * elmo: &lt;chr&gt;
+##  * cookie: &lt;chr&gt;
+```
+
+
+---
+
+## Why environments: Reducing conflicts
+
+Let's say I want to count the length of a string and make a new function `count`.
+
+
+```r
+count&lt;-function(x){
+  return(length(x))
+}
+```
+
+Now I have two objects called `count` out there!  But they are located in different environments.
+
+
+```r
+global_env()$count ## this count lives in the global environment
+```
+
+```
+## function(x){
+##   return(length(x))
+## }
+```
+
+```r
+sesame.street$count ## this count lives on sesame street
+```
+
+```
+## [1] "I count one cookie.  Mwhahahaha!"
+```
+
+
+---
+
+## Reducing conflicts: How?
+
+The key here is that objects (including functions) first look around in their *own* environment before looking for objects somewhere else.
+
+Imagine we have a function with the same name in two environments.
+
+```r
+middle.earth&lt;-env(
+                ending=function(x){
+                  paste("And when I got home I said", x)
+                },
+                frodo="G'day mate!"
+                )
+# Add a function with the same name to sesame.street
+sesame.street$ending=function(x){
+  paste("Whenever I find a cookie I say:", x)
+}
+```
+
+
+---
+
+So what's going to happen here?
+
+
+```r
+with_env(sesame.street, ending(elmo))
+with_env(middle.earth, ending(elmo))
+with_env(middle.earth, ending(frodo))
+```
+
+---
+
+## Special environments: Packages and namespaces
+
+- When you make an R package, you create a special package environment and something called a 'namespace'.  For today, you can think of this as an enclosed environment that keep packages from interfering with each other.  
+
+- Any object defined in a package will *always* look **first** to other functions and objects defined in the package.  This prevents one package from interfering with the internal workings of another.
+
+--
+
+- However, there is still the issue of multiple packages having objects with the same name.  
+
+---
+
+
+
+```r
+library(pryr)
+```
+
+```
+## Registered S3 method overwritten by 'pryr':
+##   method      from
+##   print.bytes Rcpp
+```
+
+```
+## 
+## Attaching package: 'pryr'
+```
+
+```
+## The following object is masked _by_ '.GlobalEnv':
+## 
+##     f
+```
+
+```
+## The following object is masked from 'package:rlang':
+## 
+##     bytes
+```
+
+---
+
+### Dealing with package conflicts
+
+R will look for objects in package environments in the reverse order in which they were loaded.
+
+```r
+search()
+```
+
+```
+##  [1] ".GlobalEnv"        "package:pryr"      "package:rlang"    
+##  [4] "package:stats"     "package:graphics"  "package:grDevices"
+##  [7] "package:utils"     "package:datasets"  "package:methods"  
+## [10] "Autoloads"         "package:base"
+```
+
+--
+
+You can also directly access objects in a package environment using the `::` options.  You can even do this for packages you have not loaded.
+
+
+```r
+exampleData&lt;-data.frame(a=c(1:12))
+count(exampleData) ## Does one thing -- defined above
+```
+
+```
+## [1] 1
+```
+
+```r
+dplyr::count(exampleData) ## Does something else
+```
+
+```
+##    n
+## 1 12
+```
+
+
+---
+
+## Function and environments
+
+Remember the concept of 'scoping' and how what happens in a function stays in a function.  This is a result (but only one) of how functions and environments interact.
+
+
+```r
+x&lt;-200
+f&lt;-function(x){
+  x&lt;-x+1
+  return(x)
+}
+f(x) # do something to x
+```
+
+```
+## [1] 201
+```
+
+```r
+x # but nothing has changed!
+```
+
+```
+## [1] 200
+```
+
+---
+
+1. Functions are **created** in an *enclosing* environment.  This is basically where the function lives (and where it will first look for other objects).
+2. Functions are called in a *calling* environment.  This is the environment where the function was actually used (or called).
+3. While a function is executing it creates a temporary environment (the actual guts of the function run there).
+4. There is also a *binding environment* we'll come back to when we make packages.
+
+--
+
+What this means...
+
+- If you want objects to be used across environments they are going to need to be "passed" in as either arguments or outputs.
+
+--
+
+- Or you are going to need some other hack to jump across environments.
+
+--
+
+- And debugging can be a pain because it can be hard to figure out what your function can "see".
+
+---
+
+## Trick 1
+
+You can (but usually should not) have functions directly alter objects in their calling environment using `&lt;&lt;-`
+
+
+```r
+x&lt;-200
+f&lt;-function(x){
+  x&lt;&lt;-x+1
+  return(x)
+}
+f(x) # do something to x
+```
+
+```
+## [1] 200
+```
+
+```r
+x
+```
+
+```
+## [1] 201
+```
+
+
+---
+
+## Trick 2
+
+You can use the `browser` function to stop execution so you can hang out in the function environment.
+
+
+```r
+x&lt;-200
+f&lt;-function(x){
+  browser()
+  return(x)
+}
+f(x) # do something to x
+```
+
+
+---
+
+## Parent environments
+
+Environments are not always organized as a strict sequence.
+
+
+```r
+search()
+```
+
+BUT there is a strict hierarchy.  Each environment has one and only one parent (except for the global which has none).
+
+
+```r
+parent.env(sesame.street) # See parent
+parent.env(middle.earth) # See parent
+parent.env(sesame.street)&lt;-env(middle.earth) # Change parent
+with_env(sesame.street, ending(frodo)) # Now this works.  Why?
+with_env(middle.earth, ending(elmo)) # Still doesn't work. Why?
+```
+
+---
+
+## Final tips
+
+
+For the worksheet, you are going to manually move objects from the global into an environment.
+
+
+```r
+bombadil &lt;- "Old Tom Bombadil is a merry fellow, Bright blue his jacket is, and his boots are yellow."
+assign("bombadil", bombadil, envir=middle.earth)
+rm(bombadil)
+bombadil
+middle.earth$bombadil
+```
+
+---
+
+I could do the same thing using a generic function
+
+
+```r
+Abby &lt;- "abracadabra."
+
+## Function to assign to an environment
+toSesameStreet&lt;-function(x, targetEnv){
+## Use deparse, substitute to pull out object name from calling environment
+  assign(deparse(substitute(x)), x, envir=targetEnv) 
+}
+
+toSesameStreet(Abby, sesame.street) #Assign Abby there
+rm(Abby) # Remove from global
+sesame.street$Abby
+```
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
