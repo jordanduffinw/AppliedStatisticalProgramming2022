@@ -96,15 +96,23 @@ time1 <- system.time(apply(y, 2, function(y){
 
 time1[3]
 
-system.time(apply(y, 2, function(y){
+
+
+
+
+library(dplyr)
+library(plyr)
+
+system.time(l_ply(y, 2, function(y){
   reg_each <- lm(y ~ X)
   reg_each_coef <- reg_each$coefficients
 }),
-parallel = TRUE)
+# parallel = TRUE
+)
 
 
 library(foreach)
-registerDoMC(cores = 10)
+registerDoSEQ()
 ```
 
 

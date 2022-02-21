@@ -1,0 +1,95 @@
+---
+title: "Applied Statistical Programming - Error Handling"
+date: "2/21/2022"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{geometry}
+   - \usepackage{hyperref}
+   - \usepackage{setspace}
+   - \usepackage{hyperref}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\textbf{Write the R code to answer the following questions. Write the code, and then show what the computer returns when that code is run. Thoroughly comment your solutions.}
+
+You have until the beginning of class 2/23 at 10:00am to complete the assignment below. You may use R, but not any online R documentation. Submit the Rmarkdown and the knitted PDF to Canvas. Have one group member submit the activity with all group members listed at the top.
+
+\section*{Dang it, Bobby}
+\bigskip
+
+Your summer intern Bobby was tasked with writing a function. Bobby's internship ended, and he couldn't get the code working in time. Unfortunately, Bobby barely commented his code, and you need to fix the problem before Wednesday's code review at 10:00am.
+
+Your task is to trace errors and generate error handling statements to get the function working as intended. You will not be evaluated based on matching output between your fixed code and other existing implementations. Instead, you will be evaluated based on how well you can convince your absentee project manager that you genuinely fixed Bobby's code.
+
+A solution to this in class activity will include the following modifications to Bobby's code:
+\begin{enumerate}
+   \item print statements at different stages of the algorithm to verify correct output,
+   \item error handling that prevents a user from passing the wrong type of matrix to the function, and
+   \item commenting for each step of the algorithm.
+\end{enumerate}
+
+\subsection*{QR Factorization}
+
+Bobby used the Gram-Schmidt process to perform a $QR$ factorization of a matrix $A$.\footnote{That boy ain't right. Never, \underline{\textbf{ever}} use textbook Gram-Schmidt to invert or factor a matrix. It is both inefficient and unstable without modifications. However, it is still an excellent tool for teaching.} A $QR$ factorization of a matrix $A$ satisfies $A = QR$ where $Q$ is an orthogonal matrix and $R$ is upper triangular.
+
+\begin{quote}
+   Definition: A matrix $Q$ is orthogonal if and only if $Q^{\intercal}Q = QQ^{\intercal} = I$.
+\end{quote}
+
+\begin{quote}
+   Definition: A matrix $R$ is upper triangular if and only if all entries below the main diagonal of $R$ are all zero.
+\end{quote}
+
+Knowing a matrix has a $QR$ factorization is useful for two reasons. First, the matrix $Q$ being orthogonal provides computational savings because $Q^{\intercal} = Q^{-1}$. Transposing a matrix is considerably cheaper than inverting one. We are  often not interested in $A = QR$ by itself, but instead another product $PAX = PQRX$ where $P$ reduces nicely with $Q$ and $R$ reduces nicely with $X$.
+
+The second reason that a $QR$ factorization is useful is because it reduces the number of calculations needed to perform matrix operations. To see how, first consider naively multiplying two $n \times n$ matrices together. Each entry in a matrix $A = BC$ is the inner product of a row of length $n$ from $B$ and a column of length $n$ from $C$. There are thus $n^2$ inner products, and each inner product requires $n$ multiplications. So naive multiplication of two $n \times n$ matrices takes $n^3$ operations. 
+
+Suppose instead it is known that $R$ in $A=QR$ is upper triangular. Then the inner product of the $i$th row of $Q$ and the $j$th column of $R$ only requires $n-(j-1)$ multiplications. This is because $j-1$ of entries from the $j$th column of $R$ are zero. Not requesting the computer to make a calculation that is known to be zero adds up to tremendous computational savings, especially for large matrices. 
+
+Bobby's function \texttt{gramschmidt} is provided below. You can verify the code is broken by generating a square matrix $A$ and comparing the output of \texttt{qr(A)} with \texttt{gramschmidt(A)}. Use the following $QR$ factorization algorithm for an $n \times n$ matrix $A = [ a_1 \vert a_2 \vert \dots \vert a_n]$ to help you identify where the function isn't working.\footnote{See \url{https://www.math.ucla.edu/~yanovsky/Teaching/Math151B/handouts/GramSchmidt.pdf} for a numerical example.}
+
+\begin{itemize}
+   \item $u_1 = a_1$, $e_1 = u_1 / \Vert u_1\Vert$
+   \item $u_2 = a_2 - (a_{2}^{\intercal} e_2)*e_1$, $e_2 = u_2 / \Vert u_2\Vert$
+   \item $u_3 = a_3 - (a_{3}^{\intercal} e_1)*e_1 - (a_{3}^{\intercal} e_2)*e_2$, $e_3 = u_3 / \Vert u_3\Vert$
+   \item $\dots$
+   \item $u_n = a_n - \sum\limits^{n-1}_{j=1} (a_{n}^{\intercal}e_{j})*e_j$, $e_n = u_n / \Vert u_n\Vert$
+   \item $Q=[u_1 \vert u_2 \vert \dots \vert u_n]$, $R=[e_1 \vert e_2 \vert \dots \vert e_n]$
+\end{itemize}
+
+
+
+
+```{r tidy=TRUE, eval=FALSE}
+# Remove eval=FALSE from this code block to have it run.
+gramschmidt <- function(x) {
+  # Get the number of rows and columns of the matrix
+  n <- ncol(x)
+  m <- nrow(x)
+  
+  # Initialize matrices Q and R
+  Q <- matrix(0, m, n)
+  R <- matrix(0, n, n)
+  
+  # Gram-Schmidt process
+  for (j in 1:n-1) {
+    v = x[,j]
+    if (j >= 1) {
+      for (i in 1:j) {
+        R[i,j] <- t(Q[,i]) %*% x[,j]
+        v <- v - R[i,j] * Q[,i] 
+      }      
+    }
+    R[j,j] <- sqrt(sum(v^2))
+    Q[,j] <- v / R[j,j]
+  }
+  
+  # Return matrices Q and R in a list
+  QRdecomp <- list('Q'=Q, 'R'=R)
+  return(QRdecomp)
+}
+```
