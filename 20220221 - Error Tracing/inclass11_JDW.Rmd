@@ -54,7 +54,7 @@ Bobby's function \texttt{gramschmidt} is provided below. You can verify the code
 
 \begin{itemize}
    \item $u_1 = a_1$, $e_1 = u_1 / \Vert u_1\Vert$
-   \item $u_2 = a_2 - (a_{2}^{\intercal} e_2)*e_1$, $e_2 = u_2 / \Vert u_2\Vert$
+   \item $u_2 = a_2 - (a_{2}^{\intercal} e_1)*e_1$, $e_2 = u_2 / \Vert u_2\Vert$
    \item $u_3 = a_3 - (a_{3}^{\intercal} e_1)*e_1 - (a_{3}^{\intercal} e_2)*e_2$, $e_3 = u_3 / \Vert u_3\Vert$
    \item $\dots$
    \item $u_n = a_n - \sum\limits^{n-1}_{j=1} (a_{n}^{\intercal}e_{j})*e_j$, $e_n = u_n / \Vert u_n\Vert$
@@ -131,4 +131,34 @@ gramschmidt <- function(x) {
   QRdecomp <- list('Q'=Q, 'R'=R)
   return(QRdecomp)
 }
+
+gramschmidt <- function(x) {
+# Get the number of rows and columns of the matrix
+n <- ncol(x)
+m <- nrow(x)
+# Initialize matrices Q and R
+Q <- matrix(0, m, n)
+R <- matrix(0, n, n)
+# Gram-Schmidt process Change 'n- 1'to 'n'from line 83, so that the loop
+# for v starts at 1
+for (j in 1:n) {
+v = x[, j]
+# Change from j>=1 to j>1 from line 86, so that the loops for R and Q
+# start at 2
+if (j > 1) {
+for (i in 1:j) {
+R[i, j] <- t(Q[, i]) %*% x[, j]
+v <- v - R[i, j] * Q[, i]
+print
+}
+}
+R[j, j] <- sqrt(sum(vˆ2))
+Q[, j] <- v/R[j, j]
+}
+# Return matrices Q and R in a list
+QRdecomp <- list(Q = Q, R = R)
+return(QRdecomp)
+}
+gramschmidt(A)
+
 ```
