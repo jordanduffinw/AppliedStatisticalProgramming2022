@@ -1,0 +1,54 @@
+---
+title: "Applied Statistical Programming - ggplot"
+date: "2/28/2022"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{geometry}
+   - \usepackage{hyperref}
+   - \usepackage{setspace}
+   - \usepackage{hyperref}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\textbf{Write the R code to answer the following questions. Write the code, and then show what the computer returns when that code is run. Thoroughly comment your solutions.}
+
+You have until the beginning of class 3/2 at 10:00am to complete the assignment below. You may use R, but not any online R documentation. Submit the Rmarkdown and the knitted PDF to Canvas. Have one group member submit the activity with all group members listed at the top.
+
+\section*{Figuring out the Competition}
+
+You've been hired by a campaign to do some data analysis during the primary stage of an election. The campaign wants to understand competitiveness of certain candidates under different general election scenarios. You will plot some summary features of the provided \texttt{primaryPolls} data using \texttt{ggplot()}.
+
+
+The data is associated with 2020 Democratic primary elections. Polling results for 38 states are provided. You will create a visualization of the state of the race using this data. For three states of your choosing, generate a summary figure that visualizes the support for each candidate in that state. Each plot must include:
+\begin{itemize}
+   \item a title,
+   \item a subtitle,
+   \item labeled axes,
+   \item a legend for the candidates, and
+   \item a source attribution to the GitHub URL for the data.
+\end{itemize}
+
+
+```{r eval=FALSE}
+# Remove eval=FALSE to have this code block run.
+
+# Load library dependencies
+library(dplyr)
+library(tidyr)
+library(readr)
+
+# Define path to the data
+dataURL <- 'https://jmontgomery.github.io/PDS/Datasets/president_primary_polls_feb2020.csv'
+# Load the data
+primaryPolls<-read_csv(dataURL)
+# Format the date
+primaryPolls$start_date<-as.Date(primaryPolls$start_date, "%m/%d/%y")
+
+# Your commented solution goes here.
+```
+
+

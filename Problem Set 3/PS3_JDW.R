@@ -46,7 +46,7 @@ validate_door <- function(choice){
   }
   
   # Testing if that number is a valid choice
-  if(choice %i!n% c(1:3)){
+  if(choice %!in% c(1:3)){
     stop("Gotta choose something between 1 and 3, buddy!")
   }
 }
@@ -81,3 +81,4 @@ set.seed(666)
 PlayGame.Door(choice = "cat")
 PlayGame.Door(choice = 0)
 PlayGame.Door(choice = 1)
+
