@@ -33,18 +33,56 @@ library(tidyr)
 library(readr)
 
 # Define path to the data
-dataURL <- 'https://jmontgomery.github.io/PDS/Datasets/president_primary_polls_feb2020.csv'
+#dataURL <- 'https://jmontgomery.github.io/PDS/Datasets/president_primary_polls_feb2020.csv'
 # Load the data
-primaryPolls<-read_csv(dataURL)
+# NOTE: doing this locally
+primaryPolls <- read.csv("president_primary_polls_feb2020.csv")
 # Format the date
 primaryPolls$start_date<-as.Date(primaryPolls$start_date, "%m/%d/%y")
 
 # Your commented solution goes here.
+max(primaryPolls$start_date)
+
+newData <- primaryPolls %>%
+  filter(start_date > "2019-12-08") %>% # the last two months
+  group_by(pct, state, candidate_name) %>% # our selection of things we care about
+  mutate(in_favor = pct/100) %>% # the proportion of supporters
+  summarise(median_support = median(in_favor)) %>% 
+  top_n(median_support, n = 10)
+
+
+# Stuff I was doing on the side -- this also completes the second half of the assignment
+dat <- primaryPolls %>%
+  group_by(candidate_name, state, party) %>% # grouping by candidate, state, and party
+  filter(state != "") %>% # dropping observations without a state
+  summarise(mean_pct = mean(pct)) %>% # outputting the mean pct for each candidate, by state
+  filter(mean_pct > 0) # getting rid of observations with percents = 0
+
+head(dat)
+
+object.size(dat)
+object.size(primaryPolls)
+
+# and messing around with `usmap`
+library(usmap)
+statemaps <- us_map(regions = "state")
+statemaps$state <- statemaps$full
+
+states <- inner_join(statemaps, dat, by = "state")
+
+library(ggplot2)
+map <- ggplot() +
+  geom_polygon(data = states[states$candidate_name == "Joseph R. Biden Jr.",],
+               aes(x = x, y = y, group = group, fill = mean_pct)) +
+  labs(fill = "Percent Support") +
+  scale_fill_continuous(low = "light blue", high = "dark blue", limits = c(0,100))+
+  geom_polygon(data = statemaps, aes(x = x, y = y, group = group),
+               fill = NA, col = "black") +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank())
+
+map
 ```
-
-
-
-
-
-
-
