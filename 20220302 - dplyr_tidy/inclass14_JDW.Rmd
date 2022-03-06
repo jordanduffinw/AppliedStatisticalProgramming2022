@@ -43,6 +43,7 @@ primaryPolls$start_date<-as.Date(primaryPolls$start_date, "%m/%d/%y")
 # Your commented solution goes here.
 max(primaryPolls$start_date)
 
+# The in-class stuff
 newData <- primaryPolls %>%
   filter(start_date > "2019-12-08") %>% # the last two months
   group_by(pct, state, candidate_name) %>% # our selection of things we care about
@@ -51,7 +52,7 @@ newData <- primaryPolls %>%
   top_n(median_support, n = 10)
 
 
-# Stuff I was doing on the side -- this also completes the second half of the assignment
+# Stuff I was doing on the side -- this also completes the second half of the assignment (after class)
 dat <- primaryPolls %>%
   group_by(candidate_name, state, party) %>% # grouping by candidate, state, and party
   filter(state != "") %>% # dropping observations without a state
