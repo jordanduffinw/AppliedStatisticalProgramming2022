@@ -1,0 +1,43 @@
+---
+title: "Applied Statistical Programming - Relational Databases"
+date: "3/7/2022"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{geometry}
+   - \usepackage{hyperref}
+   - \usepackage{setspace}
+   - \usepackage{hyperref}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\textbf{Write R code to answer the following questions. Write the code, and then show what the computer returns when that code is run. Thoroughly comment your solutions.}
+
+You have until the beginning of class 3/9 at 10:00am to complete the assignment below. You may use R, but not any online R documentation. Submit the Rmarkdown and the knitted PDF to Canvas. Have one group member submit the activity with all group members listed at the top.
+
+\section*{Relational Databases}
+
+Data rarely come in nicely combined CSV files. This exercise gives you practice combining data sources. You are given three sets of Twitter data that need to be combined to answer a set of questions below. The data can be found at the following URLs.
+
+\begin{itemize}
+   \item \url{https://github.com/jmontgomery/jmontgomery.github.io/blob/master/PDS/Datasets/Tweets.csv.zip}
+   \item \url{https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/Mayors.csv}
+   \item \url{https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/TwitterMentions.csv}
+\end{itemize}
+
+Once you have imported the data, use relational database commands join data as necessary in order to answer the following questions.
+\begin{enumerate}
+   \item For each mayor, calculate the number of times they were mentioned
+   \item Add to the mentions datset the number of times each mayor tweeted.
+   \item Create a combined dataset of all tweets from the tweets and mentions data. Subset down to overlapping columns (and rename where needed) to make this easy.
+   \item Are there any tweets in the mentions dataset from mayors?
+\end{enumerate}
+
+
+
+```{r}
+# Your code
+```

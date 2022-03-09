@@ -1,0 +1,122 @@
+---
+title: "Applied Statistical Programming - Relational Databases"
+date: "3/7/2022"
+author: "Jordan Duffin Wong"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{geometry}
+   - \usepackage{hyperref}
+   - \usepackage{setspace}
+   - \usepackage{hyperref}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+\textbf{Write R code to answer the following questions. Write the code, and then show what the computer returns when that code is run. Thoroughly comment your solutions.}
+
+You have until the beginning of class 3/9 at 10:00am to complete the assignment below. You may use R, but not any online R documentation. Submit the Rmarkdown and the knitted PDF to Canvas. Have one group member submit the activity with all group members listed at the top.
+
+\section*{Relational Databases}
+
+Data rarely come in nicely combined CSV files. This exercise gives you practice combining data sources. You are given three sets of Twitter data that need to be combined to answer a set of questions below. The data can be found at the following URLs.
+
+\begin{itemize}
+   \item \url{https://github.com/jmontgomery/jmontgomery.github.io/blob/master/PDS/Datasets/Tweets.csv.zip}
+   \item \url{https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/Mayors.csv}
+   \item \url{https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/TwitterMentions.csv}
+\end{itemize}
+
+Once you have imported the data, use relational database commands join data as necessary in order to answer the following questions.
+\begin{enumerate}
+   \item For each mayor, calculate the number of times they were mentioned
+   \item Add to the mentions datset the number of times each mayor tweeted.
+   \item Create a combined dataset of all tweets from the tweets and mentions data. Subset down to overlapping columns (and rename where needed) to make this easy.
+   \item Are there any tweets in the mentions dataset from mayors?
+\end{enumerate}
+
+
+
+```{r}
+# Libraries
+library(dplyr)
+library(readr)
+
+# Loading data
+mayors<-read_csv(file="https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/Mayors.csv")
+tweets<-read_csv("Tweets.csv")
+mentions <- read_csv(file = "https://raw.githubusercontent.com/jmontgomery/jmontgomery.github.io/master/PDS/Datasets/TwitterMentions.csv")
+
+
+tweets <- rename(tweets, TwitterHandle=ScreenName)
+
+# Joining state, city, census id
+# as well as mapping tweet counts to mayors
+tweetcounts <- tweets %>% 
+  count(TwitterHandle)
+
+mayors_merged <- mayors %>% 
+  left_join(x = select(mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = tweetcounts,
+            by = "TwitterHandle")
+
+mayors_merged_right <- mayors %>% 
+  right_join(x = select(mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = tweetcounts,
+            by = "TwitterHandle")
+
+mayors_merged_inner <- mayors %>% 
+  inner_join(x = select(mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = tweetcounts,
+            by = "TwitterHandle")
+
+mayors_merged_full <- mayors %>% 
+  full_join(x = select(mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = tweetcounts,
+            by = "TwitterHandle")
+
+# Duplicates: Rob and Rod
+robrod_mayors <- mayors %>% 
+  filter(TwitterHandle %in% c("robertgarcialb", "rodhiggins2017"))
+
+robrod_tweets <- tweets %>% 
+  filter(TwitterHandle %in% c("robertgarcialb", "rodhiggins2017"))
+
+robrod_merged_left <- robrod_mayors %>% 
+  left_join(x = select(robrod_mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = robrod_tweets,
+            by = "TwitterHandle")
+
+robrod_merged_right <- robrod_mayors %>% 
+  right_join(x = select(robrod_mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = robrod_tweets,
+            by = "TwitterHandle")
+
+robrod_merged_inner <- robrod_mayors %>% 
+  inner_join(x = select(robrod_mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = robrod_tweets,
+            by = "TwitterHandle")
+
+robrod_merged_full <- robrod_mayors %>% 
+  full_join(x = select(robrod_mayors, TwitterHandle, LastName, State, CityName, CensusID),
+            y = robrod_tweets,
+            by = "TwitterHandle")
+
+# Adding mentions
+mentioncounts <- mentions %>%
+  count(MayorHandle)
+
+mentions_merged <- mentions %>%
+  inner_join(x = mentions,
+             y = mentioncounts,
+             by = "MayorHandle")
+
+# Combining it all
+mayors_merged <- rename(mayors_merged, MayorHandle = TwitterHandle)
+
+alldata <- mentions_merged %>% 
+  right_join(mayors_merged, mentions_merged,
+            by = "MayorHandle")
+```
