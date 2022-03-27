@@ -1,0 +1,19 @@
+## Function 1: Sum of squares
+addSquares <- function(x, y){
+  return(list(square=(x^2 + y^2), x = x, y = y))
+}
+dump("addSquares", file="addSquares.R")
+## Function 2: Difference of squares
+subtractSquares <- function(x, y){
+  return(list(square=(x^2 - y^2), x = x, y = y))
+}
+dump("subtractSquares", file="subtractSquares.R")
+
+setwd("C:/Users/jorda/OneDrive/2022 Spring/POLS 5265 - Applied Statistical Programming/Class [Git]/AppliedStatisticalProgramming2022/20220323 - Package_structure/inclass20220323")
+
+## Set the working directory
+rm(list=ls()) ## Clear the workspace
+source("addSquares.R") ## Load functions into workspace
+source("subtractSquares.R")
+package.skeleton(name = "squaresPack",
+                 list = c("addSquares",  "subtractSquares"))

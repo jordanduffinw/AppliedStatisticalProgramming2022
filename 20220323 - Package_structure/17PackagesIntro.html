@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R packages: The Basics</title>
+    <meta charset="utf-8" />
+    <script src="libs/header-attrs-2.11/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R packages: The Basics
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Politcal Science</em></div>
+### Lecture 17
+
+---
+
+
+&lt;style type="text/css"&gt;
+pre {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 100px;
+}
+&lt;/style&gt;
+
+
+
+
+### Orientation for today
+
+**Our adventures so far**
+
+1. Basic building blocks for R programming
+2. Useful data science tools
+      
+--
+
+**Today**
+
+1. Since we didn't have class on Monday, submit in class exercises from the week before Spring Break to Canvas before 11:59pm on Friday, March 25.
+
+--
+
+2. `R` Packages: Basics
+
+
+--
+
+**Next class**
+
+1. Packages with S4 classes
+    
+
+---
+
+### Lecture pre-requisites for Windows users
+
+1. Install `Rtools` from https://cran.r-project.org/bin/windows/Rtools/
+
+2. Find and save the path to the `R` binary on your computer. Inspect properties of your `R` shortcut and copy the path in the ‘Target’ field.
+
+3. Edit environment variables. "View advanced system settings" and click the "Environmental Variables..." button in the dialog box that appears. Find the system variable “Path”. Add the following two paths, separating each path with a semi-colon.
+
+- The path to the `R` binary from Step 2.
+- The path to `Rtools` binaries.
+
+Example: `\(\textit{C:\\Program Files\\R\\R-4.1.2\\bin; } \textit{C:\\Rtools;}\)`
+
+
+Check if the paths were added correctly by entering `path` into the command prompt.
+
+---
+
+
+### Why make a package?
+
+- You have a novel statistical method
+- You want credit for something (ex. `separationPlot`)
+- "Simple" way to share complex code/results/data.  
+- Coherent way to organize:
+    - Data
+    - Documentation/explanation
+    - Meta-data
+    - Execute complex code
+
+---
+
+### An `R` package *must* contain:
+
+- `R` functions (`.R` files)
+- Documentation (`.Rd` files)
+- Meta-data (`NAMESPACE` and `DESCRIPTION`)
+
+--
+
+### An `R` package *can* contain:
+
+- Datasets
+- Demo files
+- Class structures (and helper functions)
+- Compiled code
+- More
+
+---
+
+### Example: squaresPack
+
+
+
+```r
+## Function 1: Sum of squares
+addSquares &lt;- function(x, y){
+  return(list(square=(x^2 + y^2), x = x, y = y))
+}
+dump("addSquares", file="addSquares.R")
+
+## Function 2: Difference of squares
+subtractSquares &lt;- function(x, y){
+  return(list(square=(x^2 - y^2), x = x, y = y))
+}
+dump("subtractSquares", file="subtractSquares.R")
+```
+
+
+---
+
+### Necessary file structure
+
+
+
+
+```
+squaresPack
+│ - DESCRIPTION
+│ - NAMESPACE   
+│
+└───R
+│   │ - addSquares.R.
+│   │ - file012.txt
+| 
+└───man
+    │ - addSquares.Rd
+    │ - subtractSquares.Rd
+```
+
+
+---
+
+### Breaking it down
+
+
+- Directory must have the name of the package
+
+--
+
+- `DESCRIPTION` file must have **exactly** that name. This contains required meta-data about the package (e.g., version number).
+
+--
+
+- `NAMESPACE` determined what functions or objects will be
+available in the global environment and sets up a package-specific namespace.
+
+--
+
+- The `R` directory contains `*.R` files with your scripts/functions/etc.
+
+--
+
+- The `man` directory contains the `*.Rd` help files.
+
+
+
+
+---
+
+### Required package structure
+
+
+```
+squaresPack
+│ - DESCRIPTION
+│ - NAMESPACE   
+│
+└───R
+│   │ - addSquares.R.
+│   │ - file012.txt
+| 
+└───man
+    │ - addSquares.Rd
+    │ - subtractSquares.Rd.
+```
+
+---
+
+
+
+### Populating the directories: `R`
+
+
+Put your `R` scripts in the `R` directory.
+
+- The simplest convention is to include one `R` function in each file
+- In many instances you will find that files contain multiple `R` functions, especially if there is some class system.
+- Try not to include separate `*.R` files for functions you don't want users playing with
+
+
+---
+
+
+### Populating the directory: `man`
+
+
+
+
+```
+\name{addSquares}
+\alias{addSquares}
+\title{Adding squared values}
+\usage{
+  addSquares(x, y)
+}
+\usage{
+  addSquares(x, y)
+}
+\arguments{
+ \item{x}{A numeric object}
+ \item{y}{A numeric object with the same dimensionality as
+  \code{x}.}
+}
+\value{
+  A list with the elements 
+ \item{squares}{The sum of the  squared values} 
+ \item{x}{The first object input}
+ \item{y}{The second object input}
+}
+\description{
+  Finds the squared sum of numbers
+}
+\note{
+  This is a very simple function
+}
+\examples{
+myX &lt;- c(20, 3); myY &lt;- c(-2, 4.1)
+addSquares(myX, myY)
+}
+\author{
+  Jacob M. Montgomery
+}
+\seealso{
+    \code{\link{subtractSquares}}
+}
+```
+
+
+---
+
+### Populating the directory: `DESCRIPTION`
+
+Contains:
+
+- package name
+- formal title
+- current version number
+- the date for the version release
+- the name and contact information of of the author and maintainer
+- dependencies
+- list of the files in the `R` subdirectory
+
+---
+
+### Populating the directory: `DESCRIPTION`
+```
+Package: squaresPack
+Title: Adding and subtracting squared values
+Version: 0.1
+Author: Jacob M. Montgomery
+Maintainer: Jacob M. Montgomery &lt;jacob.montgomery@wustl.edu&gt;
+Description: Find sum and difference of squared values
+Depends:
+    R (&gt;= 3.0.0)
+License: GPL (&gt;= 2)
+Suggests:
+    devtools
+Collate:
+   `addSquares.R'
+   `subtractSquares.R'
+```
+
+
+---
+
+
+### Populating the directory: `NAMESPACE`
+
+This (can be) the most difficult part, and is aimed at setting up a
+package specific environment and controlling what functions users can
+see and/or use directly.  
+
+At a minimum, it needs to read in the functions, class definitions
+etc. that are "available" to R. 
+
+--
+
+The contents of the `NAMESPACE` file for this package are:
+
+
+```
+export(addSquares)
+export(subtractSquares)
+```
+
+
+---
+
+### Fast setup/execution
+
+
+
+```r
+setwd("~/Desktop/MyPackage/") ## Set the working directory
+rm(list=ls()) ## Clear the workspace
+source("addSquares.R") ## Load functions into workspace
+source("subtractSquares.R")
+package.skeleton(name = "squaresPack", 
+                 list = c("addSquares",  "subtractSquares"))
+```
+
+
+--
+
+Can also use R studio by setting up a project as an R package.
+
+---
+
+### Class activity part 1
+
+### macOS version
+Open a terminal and navigate to the package directory with `cd`. Run the following commands.
+
+```
+R CMD build --resave-data=no squaresPack
+R CMD check squaresPack
+R CMD INSTALL squaresPack
+```
+
+--- 
+
+### Windows version
+Open a command prompt and navigate to the package directory with `cd`. Run the following commands.
+
+```
+Rcmd build --binary squaresPack
+Rcmd check squaresPack
+Rcmd INSTALL squaresPack_1.0.tar.gz
+```
+
+
+---
+
+### Considerations
+
+- The `package.skeleton()` will always create a new fresh directory.  It is not useful for doing maintenance.
+- The `R CMD check` or `Rcmd check` commands don't always work perfectly.
+- Not all warnings from `R CMD check` or `Rcmd check` are worth heeding.
+- Once the package is installed, you can work with it like a user.
+
+
+---
+
+
+### Full package creation checklist (macOS, no `devTools`)
+
+
+1. Edit `\(\texttt{DESCRIPTION}\)` file
+2.  Change R code and/or data files.
+3.  Edit `\(\texttt{NAMESPACE}\)`  file
+4. Update `\(\texttt{man}\)` files 
+5. `R CMD build --resave-data=no pkg`
+6. `R CMD check pkg`
+7. `R CMD INSTALL pkg`
+8. Check Windows compliance by submitting to: `http://win-builder.r-project.org/`
+9. Upload to `CRAN`
+10. Email R-core team: `cran@r-project.org`
+
+This is much easier with `devTools`, covered later.
+
+
+---
+
+
+### Full package creation checklist (Windows, no `devTools`)
+
+
+1. Edit `\(\texttt{DESCRIPTION}\)` file
+2.  Change R code and/or data files.
+3.  Edit `\(\texttt{NAMESPACE}\)`  file
+4. Update `\(\texttt{man}\)` files 
+5. `Rcmd build --binary pkg`
+6. `Rcmd check pkg`
+7. `Rcmd INSTALL pkg_version.tar.gz`
+8. Check Windows compliance by submitting to: `http://win-builder.r-project.org/`
+9. Upload to `CRAN`
+10. Email R-core team: `cran@r-project.org`
+
+This is much easier with `devTools`, covered later.
+
+
+
+---
+
+## Class activity part 2
+
+
+1. Add a new function to the package `\(\texttt{squaresPack}\)`. The function can do anything of your choosing.
+
+2. Using the example from lecture, create a new package `\(\texttt{absPack}\)` that includes functions to add or subtract the absolute value of two numbers instead of the square of two numbers. Be sure to update documentation appropriately. The `\(\texttt{absPack}\)` package does not need to include the bonus function added in (1).
+
+Compress directories for `\(\texttt{squaresPack}\)` and `\(\texttt{absPack}\)` packages into a single `.zip` file and submit it to Canvas.
+
+--
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
