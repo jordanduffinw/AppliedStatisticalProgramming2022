@@ -1,0 +1,9 @@
+load("/Users/jmontgomery/Dropbox/DevTools Paper/NonSweave/S3 Example/squaresPack/data/exampleDataset.rda")
+?write
+?save
+load("/Users/jmontgomery/Dropbox/DevTools Paper/NonSweave/S3 Example/squaresPack/data/exampleDataset.rda")
+ls)
+ls()
+exampleDataset
+environment()
+.libPaths()
