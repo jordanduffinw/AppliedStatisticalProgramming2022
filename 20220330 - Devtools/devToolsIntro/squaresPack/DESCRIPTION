@@ -1,0 +1,16 @@
+Package: squaresPack
+Title: 
+Version: 0.1
+Authors@R: 
+Author: RTM
+Maintainer: rtm <rtm@email.edu>
+Description: 
+Depends:
+    R (>= 3.0.0)
+License: 
+Suggests:
+    devtools
+Collate:
+    'addSquares.R'
+    'subtractSquares.R'
+RoxygenNote: 6.0.1

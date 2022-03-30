@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R packages: S4 Classes</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R packages: S4 Classes
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Politcal Science</em></div>
+### Lecture 18
+
+---
+
+
+&lt;style type="text/css"&gt;
+pre {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 100px;
+}
+&lt;/style&gt;
+
+
+
+
+### Orientation for today
+
+**Before**
+
+1. Basic package structure
+      
+--
+
+**Today**
+
+1. S4 classes 
+2. Generics and methods
+
+
+--
+
+**Next class**
+
+1. `devtools`
+    
+
+---
+
+## What the why?
+
+- S3 classes are easy to implement and flexible
+- But come with few protections against users
+- S4 offers ways to:
+    - Define a class
+    - Ensure all objects of class meet expectations
+- Requires extra work
+
+
+---
+
+### Defining a class for `squaresPack`
+
+
+
+```r
+setClass(Class="Squares", 
+     representation = representation(
+          square = "numeric",
+          x = "numeric",
+          y = "numeric"
+          ),
+     prototype = prototype(
+          square = c(),
+          x = c(),
+          y = c()
+          )
+     )
+```
+
+
+---
+
+### Validity and initialization
+
+
+```r
+setValidity("Squares", function(object){
+    added&lt;-object@x^2+object@y^2
+    subtracted&lt;-object@x^2-object@y^2
+    test1&lt;-all(object@square==added)
+    test2&lt;-all(object@square==subtracted)
+	  object@square!=added
+    if(!test1 &amp; !test2){return("@square is not a valid value")}
+  }
+)
+
+
+setMethod("initialize", "Squares",  function(.Object, ...) {
+  value = callNextMethod()
+  validObject(value)
+  return(value)
+})
+```
+
+---
+
+### What will these do?
+
+
+```r
+new("Squares")
+new("Squares", square=13, x=3, y=2)
+new("Squares", square="turtle", x=30, y=20)
+new("Squares", square=14, x=3, y=2)
+```
+
+
+---
+
+## Accessors and utilities
+
+- A further advantage of real class systems is we can enforce standards
+    - We do this above for creating objects
+    - But we can also do this for functions ("setters")
+    - Can also standardize "getters" so users don't interact with objects directly using the `@` symbols.
+
+
+---
+
+### generics and methods
+
+But with S4 classes we will almost always need to 
+
+- create the `generic` (unless one already exists) and only then
+- specify the `method` for our class
+
+
+---
+
+
+
+
+```r
+setGeneric("getSquares",
+     function(object="Squares")  {
+         standardGeneric("getSquares")
+} )
+
+setMethod("getSquares", "Squares",
+     function(object){
+          return(object@square)
+} )
+
+
+# Usage
+myObject&lt;-new("Squares", square=13, x=3, y=2)
+getSquares(myObject)
+```
+
+--
+
+Run all of this code up till now
+
+
+---
+
+### How this works for functions
+
+- You will create generic "methods"
+- What exactly that method will execute will depend on the class of the object the method is "called on."
+- The functions will either alter an object of the class, create a new object of that class, or create an object of a different class/subclass.
+- Moreover, if done correctly, you functions will constantly check to ensure you have not created a bastard object that does not conform to the class structure.
+
+
+---
+
+
+```r
+setGeneric("setsquare&lt;-",
+     function(object, value)  {
+         standardGeneric("setsquare&lt;-")
+} )
+
+setReplaceMethod(
+	f="setsquare",
+	signature="Squares",
+	definition=function(object,value){
+		object@square&lt;-value
+		validObject(object) # Check validity before returning
+		return(object)
+	}
+)
+
+## Example
+setsquare(myObject)&lt;-13
+setsquare(myObject)&lt;-14
+```
+
+---
+
+### Subclasses
+
+- Subclasses have all of the features of their "superclass" plus some extra definitions
+- Subclasses "inherent" the features of the superclass and have extra features.  Examples?
+- This is much easier to do with S4
+- As an example, let's look at the `squaresPack` zip drive and look at the `AllSquares` class definition.  What methods are defined for this class?
+- What happens if we don't include that `square` slot?
+
+
+---
+
+### Class exercise
+
+1. Provide an informal diagram of this R package
+2. This should include all classes, subclasses, generics, and methods.  Don't worry about datasets or help files for now.
+3. Provide a working example showing the usage of all functions available for this package.
+4. Look at the NAMESPACE file.  Try to guess what each line there is doing.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

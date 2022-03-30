@@ -1,7 +1,7 @@
 Package: squaresPack
 Title: Adding and subtracting squared values
 Version: 0.1
-Author: Jacob M. Montgomery and Ryan T. Moore
+Author: Jacob M. Montgomery and Ryan T. Moore and JDW I Guess
 Maintainer: Ryan T. Moore <rtm@wustl.edu>
 Description: Find sum and difference of squared values
 Depends:
