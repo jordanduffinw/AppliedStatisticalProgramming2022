@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R packages: devtools</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R packages: devtools
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Politcal Science</em></div>
+### Lecture 19
+
+---
+
+
+&lt;style type="text/css"&gt;
+pre {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 100px;
+}
+&lt;/style&gt;
+
+
+
+
+### Orientation for today
+
+**Before**
+
+1. S4 classes 
+      
+--
+
+**Today**
+
+1. `devtools`
+
+--
+
+**Next class**
+
+1. Unit testing
+    
+
+---
+
+
+### Full package creation checklist (Windows, no `devTools`)
+
+
+1. Edit `\(\texttt{DESCRIPTION}\)` file
+2.  Change R code and/or data files.
+3.  Edit `\(\texttt{NAMESPACE}\)`  file
+4. Update `\(\texttt{man}\)` files 
+5. `Rcmd build --binary pkg`
+6. `Rcmd check pkg`
+7. `Rcmd INSTALL pkg_version.tar.gz`
+8. Check Windows compliance by submitting to: `http://win-builder.r-project.org/`
+9. Upload to `CRAN`
+10. Email R-core team: `cran@r-project.org`
+
+
+---
+
+### Making life easier 
+
+- Allow you to update your help files and functions in the same document
+- Populate all directories correctly
+- Deal with (most) of the namespace file automatically
+- More
+
+
+---
+
+
+```
+squaresPack
+│ - DESCRIPTION
+│ - NAMESPACE   
+│
+└───R
+│   │ - addSquares.R.
+│   │ - subtractSquares.R
+| 
+└───man
+    │ - addSquares.Rd
+    │ - subtractSquares.Rd.
+```
+
+
+---
+
+## R Functions
+
+
+```r
+## Function 1: Sum of squares
+addSquares &lt;- function(x, y){
+  return(list(square=(x^2 + y^2), x = x, y = y))
+}
+```
+
+
+---
+
+
+### Help file
+
+
+
+
+```
+\name{addSquares}
+\alias{addSquares}
+\title{Adding squared values}
+\usage{
+  addSquares(x, y)
+}
+\usage{
+  addSquares(x, y)
+}
+\arguments{
+ \item{x}{A numeric object}
+ \item{y}{A numeric object with the same dimensionality as
+  \code{x}.}
+}
+\value{
+  A list with the elements 
+ \item{squares}{The sum of the  squared values} 
+ \item{x}{The first object input}
+ \item{y}{The second object input}
+}
+\description{
+  Finds the squared sum of numbers
+}
+\note{
+  This is a very simple function
+}
+\examples{
+myX &lt;- c(20, 3); myY &lt;- c(-2, 4.1)
+addSquares(myX, myY)
+}
+\author{
+  Jacob M. Montgomery
+}
+\seealso{
+    \code{\link{subtractSquares}}
+}
+```
+
+
+---
+
+### Manage both at once
+
+
+```
+#' Adding squared values
+#'
+#' Finds the sum of squared numbers
+#'
+#' @param x A numeric object
+#' @param y A numeric object with the same dimensionality as \code{x}.
+#'
+#' @return A list with the elements
+#'  \item{squares}{The sum of the squared values}
+#'  \item{x}{The first object input} 
+#'  \item{y}{The second object input}
+#' @author Jacob M. Montgomery 
+#' @note This is a very simple function
+#' @examples
+#' 
+#' myX &lt;- c(20, 3) 
+#' myY &lt;- c(-2, 4.1) 
+#' addSquares(myX, myY)
+#' @seealso \code{\link{subtractSquares}}
+#' @rdname addSquares
+#' @export
+addSquares &lt;- function(x, y){
+  return(list(square=(x^2 + y^2), x = x, y = y))
+}
+```
+
+---
+
+### Notes on `devtools`
+
+- Everything after a #' symbol combination is "processed" (create your `man` files.
+- The @ symbold specifies the beginning of specific slots in the help file
+- This allows you to edit your documentation and functions at the same time.
+- The `@rdname` command tells it the name of the help file
+- The `@export` command tells it to add the function into the namespace
+- The spacing of the first three lines is meaningful.
+
+---
+
+### Some useful `devtools` functions
+
+```
+current.code &lt;- as.package("squaresPack") 
+load_all(current.code) # Load all of the functions so you can use them
+document(current.code) # Make the help files
+check(current.code) # Run the R checks 
+install(pkg=current.code, local=TRUE)} # Install the package
+build(current.code, path=getwd()) # Build a local copy for you to share
+build_win(current.code) # Send it to winbuilder
+release(current.code, check=FALSE) # Send it to CRAN
+```
+
+
+---
+
+### A new checklist (MacOS and devtools)
+
+1. Edit R code and/or data files
+2. Run `as.package()`, `load_all()`,
+`document()`
+3. Check the code: `check(current.code)`
+4. Make a Windows build: `build_win(current.code)`
+5. Double-check the `DESCRIPTION` file
+- Submit the package to CRAN: `release(current.code, check=FALSE)`
+
+
+---
+
+### Class activity (not graded)
+
+- Download and decompress `devToolsIntro.zip`
+- Build the package using the Development file.  Look at the help files.
+- Add a new function and re-build the package.  You may need to re-start you R instance if you installed `squaresPack` in this one.
+- Be sure to notice what changes in the DESCRIPTION and NAMESPACE files and what is added into the man.
+- If you have more time, add more functions.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
