@@ -1,0 +1,17 @@
+Package: easyPoisJDW
+Type: Package
+Title: Easy Poisson Estimation
+Version: 1.0.0
+Author: Jordan Duffin Wong
+Maintainer: Jordan Duffin Wong <jordan.d.wong@wustl.edu>
+Description: This package takes count data and estimates Poisson distribution via maximum likelihood estimation. It has four functions:
+    logLik estimates a log-likelihood for observed data as a function of data and rate paramater lambda.
+    mle determines the maximum likelihood estimator for lambda.
+    standardError estimates the standard error for the mle, either a basic or bootstrapped estimate.
+    estimatePois creates an S4-class object "PoisMLE", which contains all of the above elements.
+License: None
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
+Collate: 
+    'class_PoisMLE.R'
