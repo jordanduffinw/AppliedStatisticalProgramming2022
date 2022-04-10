@@ -9,13 +9,14 @@ Description: This package takes count data and estimates Poisson distribution vi
     mle determines the maximum likelihood estimator for lambda.
     standardError estimates the standard error for the mle, either a basic or bootstrapped estimate.
     estimatePois creates an S4-class object "PoisMLE", which contains all of the above elements.
-License: None
+License: GPL (>=3)
 Encoding: UTF-8
 LazyData: true
 Imports: methods
 RoxygenNote: 7.1.2
 Collate: 
     'class_PoisMLE.R'
+    'estimatePois.R'
     'logLik.R'
     'mle.R'
     'standardError.R'

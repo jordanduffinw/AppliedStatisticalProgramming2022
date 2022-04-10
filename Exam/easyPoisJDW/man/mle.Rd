@@ -2,6 +2,7 @@
 % Please edit documentation in R/mle.R
 \name{mle}
 \alias{mle}
+\alias{MLE}
 \title{Maximum Likelihood Estimation}
 \usage{
 mle(y)
@@ -22,7 +23,7 @@ y <- sample(x = 1:50, size = 25, replace = TRUE)
 mle(y)
 }
 \seealso{
-\code{\link[PoisMLE]{logLik}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+\code{\link{logLik}}, \code{\link{standardError}}, \code{\link{estimatePoisson}}
 }
 \author{
 Jordan Duffin Wong: \email{jordan.d.wong@wustl.edu}

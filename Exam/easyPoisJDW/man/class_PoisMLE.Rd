@@ -3,6 +3,7 @@
 \docType{class}
 \name{PoisMLE-class}
 \alias{PoisMLE-class}
+\alias{PoissonMLE}
 \title{Define the Poisson MLE Class}
 \description{
 An Object of class \code{PoisMLE} can be created by the \code{mlePois()} function.
@@ -18,7 +19,7 @@ An Object of the class `PoisMLE` has the following slots:
 }
 }
 \seealso{
-\code{\link[PoisMLE]{logLikelihood}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standardError}}, \code{\link[PoisMLE]{estimatePoisson}}
+\code{\link{logLikelihood}}, \code{\link{mle}}, \code{\link{standardError}}, \code{\link{estimatePoisson}}
 }
 \author{
 Jordan Duffin Wong: \email{jordan.d.wong@wustl.edu}

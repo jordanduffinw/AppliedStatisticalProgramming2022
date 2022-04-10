@@ -8,12 +8,13 @@
 #'     \item{MLE}{The MLE for the observed data.}
 #'
 #' @author Jordan Duffin Wong: \email{jordan.d.wong@@wustl.edu}
-#' @seealso \code{\link[PoisMLE]{logLik}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+#' @seealso \code{\link{logLik}}, \code{\link{standardError}}, \code{\link{estimatePoisson}}
 #' @examples
 #' set.seed(666)
 #' y <- sample(x = 1:50, size = 25, replace = TRUE)
 #' mle(y)
 #' @rdname mle
+#' @aliases MLE
 #' @include logLik.R
 #' @import methods
 #' @export

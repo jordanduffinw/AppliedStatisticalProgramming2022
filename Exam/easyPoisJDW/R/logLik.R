@@ -9,12 +9,13 @@
 #'     \item{log_likelihood}{The log-likelihood for the observed data conditioning on assumed value of lambda.}
 #'
 #' @author Jordan Duffin Wong: \email{jordan.d.wong@@wustl.edu}
-#' @seealso \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+#' @seealso \code{\link{mle}}, \code{\link{standardError}}, \code{\link{estimatePoisson}}
 #' @examples
 #' set.seed(666)
 #' y <- sample(x = 1:50, size = 25, replace = TRUE)
 #' logLik(y, lambda = 3)
 #' @rdname logLik
+#' @aliases logLikelihood
 #' @include logLik.R
 #' @import methods
 #' @export

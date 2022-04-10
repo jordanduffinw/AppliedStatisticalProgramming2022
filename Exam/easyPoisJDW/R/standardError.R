@@ -10,7 +10,7 @@
 #'     \item{SE}{The standard error for the observed data.}
 #'
 #' @author Jordan Duffin Wong: \email{jordan.d.wong@@wustl.edu}
-#' @seealso \code{\link[PoisMLE]{logLik}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{estimatePoisson}}
+#' @seealso \code{\link{logLik}}, \code{\link{mle}}, \code{\link{estimatePoisson}}
 #' @examples
 #' set.seed(666)
 #' y <- sample(x = 1:50, size = 25, replace = TRUE)
@@ -18,6 +18,7 @@
 #' standardError(y, "bootstrap", B = 1000)
 #'
 #' @rdname standardError
+#' @aliases SE
 #' @import methods
 #' @import stats
 #' @export

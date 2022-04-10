@@ -2,6 +2,7 @@
 % Please edit documentation in R/standardError.R
 \name{standardError}
 \alias{standardError}
+\alias{SE}
 \title{Standard Error}
 \usage{
 standardError(y, SEtype, B = 1000)
@@ -28,7 +29,7 @@ standardError(y, "bootstrap", B = 1000)
 
 }
 \seealso{
-\code{\link[PoisMLE]{logLik}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{estimatePoisson}}
+\code{\link{logLik}}, \code{\link{mle}}, \code{\link{estimatePoisson}}
 }
 \author{
 Jordan Duffin Wong: \email{jordan.d.wong@wustl.edu}

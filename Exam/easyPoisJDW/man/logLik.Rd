@@ -2,6 +2,7 @@
 % Please edit documentation in R/logLik.R
 \name{logLik}
 \alias{logLik}
+\alias{logLikelihood}
 \title{Log-Likelihood}
 \usage{
 logLik(y, lambda)
@@ -24,7 +25,7 @@ y <- sample(x = 1:50, size = 25, replace = TRUE)
 logLik(y, lambda = 3)
 }
 \seealso{
-\code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+\code{\link{mle}}, \code{\link{standardError}}, \code{\link{estimatePoisson}}
 }
 \author{
 Jordan Duffin Wong: \email{jordan.d.wong@wustl.edu}
