@@ -9,3 +9,16 @@ current.code <- as.package("easyPoisJDW")
 load_all(current.code)
 document(current.code)
 check(current.code)
+
+# Some testing
+set.seed(666)
+y <- rpois(1000, 10)
+my_mle <- mle(y)
+myLL <- logLik(y, lambda = my_mle)
+mySE_basic <- standardError(y, "basic")
+mySE_boot <- standardError(y, "bootstrap", B = 1000)
+
+# Help functions
+?mle()
+?logLik()
+?standardError()

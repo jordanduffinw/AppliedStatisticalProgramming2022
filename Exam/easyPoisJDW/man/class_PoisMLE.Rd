@@ -18,7 +18,7 @@ An Object of the class `PoisMLE` has the following slots:
 }
 }
 \seealso{
-\code{\link[PoisMLE]{logLikelihood}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+\code{\link[PoisMLE]{logLikelihood}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standardError}}, \code{\link[PoisMLE]{estimatePoisson}}
 }
 \author{
 Jordan Duffin Wong: \email{jordan.d.wong@wustl.edu}

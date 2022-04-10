@@ -12,6 +12,10 @@ Description: This package takes count data and estimates Poisson distribution vi
 License: None
 Encoding: UTF-8
 LazyData: true
+Imports: methods
 RoxygenNote: 7.1.2
 Collate: 
     'class_PoisMLE.R'
+    'logLik.R'
+    'mle.R'
+    'standardError.R'

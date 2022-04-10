@@ -13,9 +13,10 @@
 #' }
 #'
 #' @author Jordan Duffin Wong: \email{jordan.d.wong@@wustl.edu}
-#' @seealso \code{\link[PoisMLE]{logLikelihood}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standarderror}}, \code{\link[PoisMLE]{estimatePoisson}}
+#' @seealso \code{\link[PoisMLE]{logLikelihood}}, \code{\link[PoisMLE]{mle}}, \code{\link[PoisMLE]{standardError}}, \code{\link[PoisMLE]{estimatePoisson}}
 #' @rdname class_PoisMLE
 #' @include class_PoisMLE.R
+#' @import methods
 #' @export
 
 ### Creating the PoisMLE Class
