@@ -143,3 +143,5 @@ The user should put in the data ($y$) and the option for the standard errors.  Y
 ### Extra credit
 
 For extra credit, create a plotting function for `PoisMLE` that shows the MLE plus and minus 1.96 standard errors.  Be creative.
+
+
