@@ -1,0 +1,83 @@
+---
+title: "Applied Statistical Programming - Code Profiling"
+date: "4/18/2022"
+header-includes:
+   - \usepackage{amsmath}
+   - \usepackage{geometry}
+   - \usepackage{hyperref}
+   - \usepackage{setspace}
+   - \usepackage{hyperref}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# 400k rows, 150 columns
+data <- as.data.frame(
+matrix(rnorm(4e5*150, mean=5),
+ncol=150))
+
+normCols <- function(d){
+# Get column means
+means <- apply(d,2,mean)
+# De-mean each column
+for (i in seq_along(means)){
+d[,i] <- d[,i] - means[i]
+}
+}
+
+data_demeaned <- normCols(data)
+
+# system.time isn't very informative
+system.time({
+normCols <- function(d){
+# Get column means
+means <- apply(d,2,mean)
+# De-mean each column
+for (i in seq_along(means)){
+d[,i] <- d[,i] - means[i]
+}
+}
+data_demeaned <- normCols(data)
+})
+
+install.packages("profvis")
+library(profvis)
+profvis({
+data(diamonds, package = "ggplot2")
+plot(price ~ carat, data = diamonds)
+m <- lm(price ~ carat, data = diamonds)
+abline(m, col = "red")
+})
+
+profvis({
+normCols <- function(d){
+# Get column means
+means <- apply(d,2,mean)
+# De-mean each column
+for (i in seq_along(means)){
+d[,i] <- d[,i] - means[i]
+}
+}
+normCols(data)
+})
+
+# Four ways to get column means
+profvis({
+means <- apply(data, 2, mean)
+means <- colMeans(data)
+means <- lapply(data, mean)
+means <- vapply(data, mean, numeric(1))
+})
+
+# Profile using vapply instead
+profvis({
+means <- vapply(data, mean, numeric(1))
+for (i in seq_along(means)){
+data[,i] <- data[,i] - means[i]
+}
+})
+```
