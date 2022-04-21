@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Introduction to webscraping</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Introduction to webscraping
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Political Science</em></div>
+### Lecture 24
+
+---
+
+
+&lt;style type="text/css"&gt;
+pre {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+pre[class] {
+  max-height: 100px;
+}
+&lt;/style&gt;
+
+---
+
+## The last gasp
+
+Before
+
+
+1. Basic R content
+2. tidyverse and friends
+3. Packages
+4. Advanced topics 
+
+--
+
+Now
+
+1. Webscraping basics
+
+
+--
+
+Next
+
+1. APIs
+2. Some more tips
+
+
+---
+## How does the Internet work?: Markup
+
+- Let's jump over to politicaldatascience.com to find out
+
+--
+
+- html 
+
+![](./Images/html1.png)
+
+---
+
+
+![](./Images/xml1.png)
+
+
+- Note that these tags can be more flexible and made up
+- Not always consistent across websites, but often consistent across pages on the same website.
+
+
+---
+
+## How does the Internet work?: Structure
+
+A second fact is that websites aren't usually written by people, but by algorithms.
+
+- Urls are often relatively easy to navigate.
+
+https://www.cnn.com/election/2018/results/nevada/senate
+https://www.cnn.com/election/2018/results/tennessee/senate
+https://www.cnn.com/election/2018/results/tennessee/house
+
+---
+
+- The website does not exist, but is often constructed:
+
+https://news.google.com/search?q=wisconsin+elections&amp;hl=en-US&amp;gl=US&amp;ceid=US:en
+
+https://www.facebook.com/joebiden
+
+https://www.facebook.com/joebiden/about
+
+---
+
+So if we:
+
+- Know the basic structure of the html content of a page ...
+- and understand how the urls are set up to navigate ...
+- we can pretty easily write a script to tear down large parts of a website.
+
+---
+## The devil is in the details
+
+- This can be shockingly easy for the simplest websites.
+- And if you have a pre-defined set of urls (or urls implied by specific search combinations) can be pretty easy.
+- The hard parts are (or .. begin with):
+    1. sometimes actually extracting out the data you want is not straightforward.
+    2. sometimes the information you need to construct the urls has to itself be extracted
+    3. sometimes what you want is burried not in the html but in javascript (or something else)
+    4. sometimes they only want you (or allow you) to pull data from their API.
+
+
+---
+## A task for today
+
+- For today, we are just going to get you as far as building code to scrape a limited number of pages for the data you want.
+
+- Then onto APIs
+
+- Then we'll move onto parsing backend databases (and maybe a little on free-formed crawling) 
+
+--
+
+- But first you need some tools:
+    - You will want to install Google Chrome
+    - And you will want to install the "Inspector Gadget" Chrome extension I linked to in the slack thread for this class.
+
+
+---
+## Do, Re, Mi...
+
+https://ballotpedia.org/United_States_Senate_elections_in_Arkansas,_2014
+
+- We are going to look at the page.
+- And practice using our using our Chrome tools.
+
+
+---
+
+
+## let's get started
+
+
+```r
+library(tidyverse)
+library(rvest)
+arkansas_url&lt;-"https://ballotpedia.org/United_States_Senate_elections_in_Arkansas,_2014"
+arkansas_page&lt;-read_html(arkansas_url)
+```
+
+- Take a moment to see if you can figure out where that table of election results is stored.
+
+
+--
+
+
+```r
+arkansas_page%&gt;%html_elements("tbody")%&gt;%
+  .[2]%&gt;%
+  html_text2()
+```
+
+
+---
+
+Let's start by looking at how to pull out the main text.
+
+
+```r
+mainText&lt;-arkansas_page %&gt;%
+  html_nodes('p') %&gt;%
+  html_text()
+mainText[83:91]
+```
+
+```
+## [1] "Patriot Majority USA released the following two ads criticizing Tom Cotton's voting record and support of big business.\n"                                                                                                                                                                                                                                                                                                                                                                                                 
+## [2] "Senate Majority PAC released the following two ads calling Cotton \"a politician we just can't trust.\"\n"                                                                                                                                                                                                                                                                                                                                                                                                                 
+## [3] "NEA Advocacy Fund released the following ad opposing Cotton for wanting to end federal student loan programs, despite using the loans himself when he attended Harvard.\n"                                                                                                                                                                                                                                                                                                                                                 
+## [4] "The Democratic Senatorial Campaign Committee launched a $3.6 million ad buy in August 2014. The first ad highlighted the fact that Cotton was the only member of Congress from Arkansas to oppose funding for the state's only children's hospital.[90] In response to the ad, Cotton released his own ad saying that he voted for the hospital funding and Pryor voted against it. Following that ad, the DSCC launched another ad which said that Cotton not only voted against the funding but is now lying about it.\n"
+## [5] "On September 25, 2014, the DSCC released another ad, criticizing Cotton for voting against the Farm Bill.\n"                                                                                                                                                                                                                                                                                                                                                                                                               
+## [6] "Cotton's campaign released the following five ads. The ads primarily focused on Cotton's military record and criticizing Pryor for supporting Obamacare.\n"                                                                                                                                                                                                                                                                                                                                                                
+## [7] "The Club for Growth released the following two ads criticizing Pryor for supporting Obamacare and being too liberal.\n"                                                                                                                                                                                                                                                                                                                                                                                                    
+## [8] "Reclaim America PAC released the following ad touting Cotton's military record.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                         
+## [9] "Americans for Prosperity released the following three ads opposing Pryor for supporting Obamacare, causing insurance policies to be cancelled despite the promise that people would be able to keep their current insurance.\n"
+```
+
+
+--
+
+Now let's look at all of the ables on this page
+
+```r
+arkansas_page%&gt;%html_nodes("table")%&gt;%
+  html_table()
+```
+
+
+
+---
+
+Now maybe just that top table?
+
+
+```r
+table1&lt;-arkansas_page %&gt;%
+  html_nodes('center table') %&gt;%
+  html_table(header=TRUE)
+table1[[1]][,2:5]
+```
+
+```
+## # A tibble: 7 × 4
+##   `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Ark…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 Party               Candidate           Vote %              Votes             
+## 2 Republican          Tom Cotton          56.5%               478,819           
+## 3 Democratic          Mark Pryor Incumbe… 39.5%               334,174           
+## 4 Libertarian         Nathan LaFrance     2%                  17,210            
+## 5 Green               Mark Swaney         2%                  16,797            
+## 6 Total Votes         Total Votes         Total Votes         847,000           
+## 7 Source: Arkansas S… Source: Arkansas S… Source: Arkansas S… Source: Arkansas …
+```
+
+
+---
+
+Another version of that
+
+
+```r
+table1&lt;-arkansas_page %&gt;%
+  html_nodes('table.collapsible') %&gt;%
+  html_table(fill=TRUE)
+table1[[1]][,2:5]
+```
+
+```
+## # A tibble: 7 × 4
+##   `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Ark…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 Party               Candidate           Vote %              Votes             
+## 2 Republican          Tom Cotton          56.5%               478,819           
+## 3 Democratic          Mark Pryor Incumbe… 39.5%               334,174           
+## 4 Libertarian         Nathan LaFrance     2%                  17,210            
+## 5 Green               Mark Swaney         2%                  16,797            
+## 6 Total Votes         Total Votes         Total Votes         847,000           
+## 7 Source: Arkansas S… Source: Arkansas S… Source: Arkansas S… Source: Arkansas …
+```
+
+---
+
+Let's look at that smaller table
+
+--
+
+
+```r
+table2&lt;-arkansas_page %&gt;%
+  html_nodes('table.wikitable') %&gt;%
+  html_table()
+table2[[1]]
+```
+
+```
+## # A tibble: 1 × 3
+##   `Candidate Filing Deadline` `Primary Election` `General Election`
+##   &lt;chr&gt;                       &lt;chr&gt;              &lt;chr&gt;             
+## 1 March 3, 2014               May 20, 2014       November 4, 2014
+```
+
+---
+
+Same thing but with selector gadget
+
+--
+
+
+```r
+table2&lt;-arkansas_page %&gt;%
+  html_nodes('.wikitable center , .wikitable th') %&gt;%
+  html_text()
+table2
+```
+
+```
+## [1] "Candidate Filing Deadline\n" "Primary Election\n"         
+## [3] "General Election\n"          "March 3, 2014"              
+## [5] "May 20, 2014"                "November 4, 2014"
+```
+
+---
+
+Can we get that primary date?
+
+--
+  
+
+```r
+primaryDate&lt;-arkansas_page %&gt;% 
+  html_nodes('td:nth-child(2) center') %&gt;%
+  html_text()
+primaryDate
+```
+
+```
+## [1] "May 20, 2014"
+```
+
+---
+
+Let's just get the cooks rating 
+
+--
+  
+
+```r
+cooksScore&lt;-arkansas_page %&gt;%
+  html_nodes('.infobox br~ b') %&gt;%
+  html_text()
+cooksScore
+```
+
+```
+## [1] "Toss Up"
+```
+
+---
+
+Can also extact other elements like links
+
+--
+
+
+```r
+stateLinks&lt;-arkansas_page %&gt;%
+  html_nodes('small center a') %&gt;%
+  html_attr('href')
+stateLinks
+```
+
+```
+##  [1] "/United_States_Senate_elections_in_Alabama,_2014"       
+##  [2] "/United_States_Senate_elections_in_Alaska,_2014"        
+##  [3] NA                                                       
+##  [4] "/United_States_Senate_elections_in_Colorado,_2014"      
+##  [5] "/United_States_Senate_elections_in_Delaware,_2014"      
+##  [6] "/United_States_Senate_elections_in_Georgia,_2014"       
+##  [7] "/United_States_Senate_elections_in_Idaho,_2014"         
+##  [8] "/United_States_Senate_elections_in_Illinois,_2014"      
+##  [9] "/United_States_Senate_elections_in_Iowa,_2014"          
+## [10] "/United_States_Senate_elections_in_Kansas,_2014"        
+## [11] "/United_States_Senate_elections_in_Kentucky,_2014"      
+## [12] "/United_States_Senate_elections_in_Louisiana,_2014"     
+## [13] "/United_States_Senate_elections_in_Maine,_2014"         
+## [14] "/United_States_Senate_elections_in_Massachusetts,_2014" 
+## [15] "/United_States_Senate_elections_in_Michigan,_2014"      
+## [16] "/United_States_Senate_elections_in_Minnesota,_2014"     
+## [17] "/United_States_Senate_elections_in_Mississippi,_2014"   
+## [18] "/United_States_Senate_elections_in_Montana,_2014"       
+## [19] "/United_States_Senate_elections_in_Nebraska,_2014"      
+## [20] "/United_States_Senate_elections_in_New_Hampshire,_2014" 
+## [21] "/United_States_Senate_elections_in_New_Jersey,_2014"    
+## [22] "/United_States_Senate_elections_in_New_Mexico,_2014"    
+## [23] "/United_States_Senate_elections_in_North_Carolina,_2014"
+## [24] "/United_States_Senate_elections_in_Oklahoma,_2014"      
+## [25] "/United_States_Senate_elections_in_Oregon,_2014"        
+## [26] "/United_States_Senate_elections_in_Rhode_Island,_2014"  
+## [27] "/United_States_Senate_elections_in_South_Carolina,_2014"
+## [28] "/United_States_Senate_elections_in_South_Dakota,_2014"  
+## [29] "/United_States_Senate_elections_in_Tennessee,_2014"     
+## [30] "/United_States_Senate_elections_in_Texas,_2014"         
+## [31] "/United_States_Senate_elections_in_Virginia,_2014"      
+## [32] "/United_States_Senate_elections_in_West_Virginia,_2014" 
+## [33] "/United_States_Senate_elections_in_Wyoming,_2014"
+```
+
+---
+## Over to you
+
+- Go to politicaldatascience.com
+- See if you can make an object that gets all of the text under "Lectures"
+- See if you can go one step further and get all of of the hyperlinks as well.
+- Don't expect this to come easy.  Ask questions or put up bugs on Slack.
+
+---
+## End Part A
+
+
+
+---
+## Functionalizing and extending
+
+- So now you have some (vague) notion of how to parse HTML.
+
+- But webscraping really becomes powerful when you can rip through a lot of pages (or crawl through interconnected pages).
+
+- To do this, you will need to bring to bear a lot of the other skills you have learned:
+    - Functionalizing
+    - Data management
+    - Text parsing
+  
+---
+## Results for the 2014 Election
+
+- We already collected a complete set of links above in the `stateLinks` object
+- Can we scrape the results out of all of them?
+- We are going to need to:
+    - Write a function that takes in url and then extracts the information we need.
+    - Loop that function across what we are looking for
+    - Be aware that not all of the pages we are going to will necessarily be constructed the same.  How will we know?
+
+---
+
+
+```r
+stateLinks[3]&lt;-"/United_States_Senate_elections_in_Arkansas,_2014"
+x&lt;-stateLinks[3]
+thisUrl&lt;-paste0("https://ballotpedia.org", x)
+thisUrl
+```
+
+```
+## [1] "https://ballotpedia.org/United_States_Senate_elections_in_Arkansas,_2014"
+```
+
+```r
+this_page&lt;-read_html(thisUrl)
+```
+
+---
+
+
+
+```r
+stateLinks[3]&lt;-"/United_States_Senate_elections_in_Arkansas,_2014"
+x&lt;-stateLinks[3]
+thisUrl&lt;-paste0("https://ballotpedia.org", x)
+thisUrl
+```
+
+```
+## [1] "https://ballotpedia.org/United_States_Senate_elections_in_Arkansas,_2014"
+```
+
+```r
+this_page&lt;-read_html(thisUrl)
+```
+
+---
+
+
+```r
+table1&lt;-this_page %&gt;%
+  html_nodes('center table') %&gt;%
+  html_table(header=TRUE)
+str(table1)
+```
+
+```
+## List of 1
+##  $ : tibble [7 × 5] (S3: tbl_df/tbl/data.frame)
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Party" "" "" "" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Party" "Republican" "Democratic" "Libertarian" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Candidate" "Tom Cotton" "Mark Pryor Incumbent" "Nathan LaFrance" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Vote %" "56.5%" "39.5%" "2%" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Votes" "478,819" "334,174" "17,210" ...
+```
+
+
+---
+
+Let's just make that a function
+
+
+```r
+scrapeResults&lt;-function(x, stateLinks){
+  thisUrl&lt;-paste0("https://ballotpedia.org", stateLinks[x])
+  table.out&lt;-read_html(thisUrl) %&gt;%
+    html_nodes('center table') %&gt;%
+    html_table(header=TRUE)
+  table.out
+}
+results1&lt;-scrapeResults(3, stateLinks=stateLinks)
+str(results1)
+```
+
+```
+## List of 1
+##  $ : tibble [7 × 5] (S3: tbl_df/tbl/data.frame)
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Party" "" "" "" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Party" "Republican" "Democratic" "Libertarian" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Candidate" "Tom Cotton" "Mark Pryor Incumbent" "Nathan LaFrance" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Vote %" "56.5%" "39.5%" "2%" ...
+##   ..$ U.S. Senate, Arkansas General Election, 2014: chr [1:7] "Votes" "478,819" "334,174" "17,210" ...
+```
+
+
+---
+## Over to you
+
+- Now use the code I gave you above, and scrape out all of the "main text" of each of these posts.  
+
+
+```r
+mainText&lt;-arkansas_page %&gt;%
+  html_nodes('p') %&gt;%
+  html_text()
+```
+
+- Write a function (or a piped script) that allows you to scrape all of of these election pages.
+- It should be organized as a list so that each element of the list corresponds with one page.
+
+
+
+---
+## End part B
+
+
+
+
+---
+## Testing this in a new place.
+
+
+Will that work all of the time?
+
+
+```r
+scrapeResults(1, stateLinks=stateLinks)
+```
+
+```
+## list()
+```
+
+
+
+Nope!
+
+---
+
+Try a different node identifier?
+
+
+```r
+scrapeResults&lt;-function(x, stateLinks){
+  thisUrl&lt;-paste0("https://ballotpedia.org", stateLinks[x])
+  table.out&lt;-read_html(thisUrl) %&gt;%
+    html_nodes('table.collapsible') %&gt;%
+    html_table(fill=TRUE)
+  table.out[[1]]
+}
+results1&lt;-scrapeResults(1, stateLinks=stateLinks)
+str(results1)
+```
+
+```
+## tibble [5 × 5] (S3: tbl_df/tbl/data.frame)
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Party" "" "" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Party" "Republican" "N/A" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Candidate" "Jeff Sessions  Incumbent" "Write-in" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Vote %" "97.3%" "2.7%" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Votes" "795,606" "22,484" "818,090" ...
+```
+
+---
+
+
+```r
+results1&lt;-scrapeResults(1, stateLinks=stateLinks)
+str(results1)
+```
+
+```
+## tibble [5 × 5] (S3: tbl_df/tbl/data.frame)
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Party" "" "" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Party" "Republican" "N/A" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Candidate" "Jeff Sessions  Incumbent" "Write-in" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Vote %" "97.3%" "2.7%" "Total Votes" ...
+##  $ U.S. Senate, Alabama General Election, 2014: chr [1:5] "Votes" "795,606" "22,484" "818,090" ...
+```
+
+---
+
+So that's good?  Let's try that for all of them.
+
+
+```r
+library(plyr)
+allResults&lt;-llply(1:length(stateLinks), scrapeResults, stateLinks=stateLinks)
+names(allResults)&lt;-stateLinks
+allResults
+```
+
+```
+## $`/United_States_Senate_elections_in_Alabama,_2014`
+## # A tibble: 5 × 5
+##   `U.S. Senate, Alab… `U.S. Senate, Alab… `U.S. Senate, Alab… `U.S. Senate, Ala…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Jeff Sessions  Inc… 97.3%             
+## 3 ""                  N/A                 Write-in            2.7%              
+## 4 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 5 "Source: Alabama S… Source: Alabama Se… Source: Alabama Se… Source: Alabama S…
+## # … with 1 more variable: U.S. Senate, Alabama General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Alaska,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Alas… `U.S. Senate, Alas… `U.S. Senate, Alas… `U.S. Senate, Ala…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Dan Sullivan        48%               
+## 3 ""                  Democratic          Mark Begich Incumb… 45.8%             
+## 4 ""                  Libertarian         Mark Fish           3.7%              
+## 5 ""                  Independent         Ted Gianoutsos      2%                
+## 6 ""                  N/A                 Write-in            0.5%              
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: Alaska Se… Source: Alaska Sec… Source: Alaska Sec… Source: Alaska Se…
+## # … with 1 more variable: U.S. Senate, Alaska General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Arkansas,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Arka… `U.S. Senate, Ark…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Tom Cotton          56.5%             
+## 3 ""                  Democratic          Mark Pryor Incumbe… 39.5%             
+## 4 ""                  Libertarian         Nathan LaFrance     2%                
+## 5 ""                  Green               Mark Swaney         2%                
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: Arkansas … Source: Arkansas S… Source: Arkansas S… Source: Arkansas …
+## # … with 1 more variable: U.S. Senate, Arkansas General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Colorado,_2014`
+## # A tibble: 9 × 5
+##   `U.S. Senate, Colo… `U.S. Senate, Colo… `U.S. Senate, Colo… `U.S. Senate, Col…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Cory Gardner        48.2%             
+## 3 ""                  Democratic          Mark Udall Incumbe… 46.3%             
+## 4 ""                  Libertarian         Gaylon Kent         2.6%              
+## 5 ""                  Independent         Steve Shogan        1.4%              
+## 6 ""                  Independent         Raul Acosta         1.2%              
+## 7 ""                  Unity Party of Col… Bill Hammons        0.3%              
+## 8 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 9 "Source: Colorado … Source: Colorado S… Source: Colorado S… Source: Colorado …
+## # … with 1 more variable: U.S. Senate, Colorado General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Delaware,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Dela… `U.S. Senate, Dela… `U.S. Senate, Dela… `U.S. Senate, Del…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             "Party"             "Candidate"         "Vote %"          
+## 2 ""                  "Democratic"        "Chris Coons  Incu… "55.8%"           
+## 3 ""                  "Republican"        "Kevin Wade"        "42.2%"           
+## 4 ""                  "Green"             "Andrew Groff"      "1.9%"            
+## 5 "Total Votes"       "Total Votes"       "Total Votes"       "Total Votes"     
+## 6 "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hou…
+## # … with 1 more variable: U.S. Senate, Delaware General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Georgia,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Geor… `U.S. Senate, Geor… `U.S. Senate, Geor… `U.S. Senate, Geo…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          David Perdue        52.89%            
+## 3 ""                  Democratic          Michelle Nunn       45.21%            
+## 4 ""                  Libertarian         Amanda Swafford     1.90%             
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Georgia S… Source: Georgia Se… Source: Georgia Se… Source: Georgia S…
+## # … with 1 more variable: U.S. Senate, Georgia General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Idaho,_2014`
+## # A tibble: 5 × 5
+##   `U.S. Senate, Idah… `U.S. Senate, Idah… `U.S. Senate, Idah… `U.S. Senate, Ida…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Jim Risch  Incumbe… 65.3%             
+## 3 ""                  Democratic          Nels Mitchell       34.7%             
+## 4 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 5 "Source: Idaho Sec… Source: Idaho Secr… Source: Idaho Secr… Source: Idaho Sec…
+## # … with 1 more variable: U.S. Senate, Idaho General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Illinois,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Illi… `U.S. Senate, Illi… `U.S. Senate, Illi… `U.S. Senate, Ill…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Richard Durbin  In… 53.5%             
+## 3 ""                  Republican          Jim Oberweis        42.7%             
+## 4 ""                  Libertarian         Sharon Hansen       3.8%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Illinois … Source: Illinois S… Source: Illinois S… Source: Illinois …
+## # … with 1 more variable: U.S. Senate, Illinois General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Iowa,_2014`
+## # A tibble: 10 × 5
+##    `U.S. Senate, Iowa… `U.S. Senate, Iowa… `U.S. Senate, Iow… `U.S. Senate, Iow…
+##    &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;              &lt;chr&gt;             
+##  1 "Party"             Party               Candidate          Vote %            
+##  2 ""                  Republican          Joni Ernst         52.1%             
+##  3 ""                  Democratic          Bruce Braley       43.8%             
+##  4 ""                  Independent         Rick Stewart       2.4%              
+##  5 ""                  Libertarian         Douglas Butzier    0.7%              
+##  6 ""                  Independent         Ruth Smith         0.5%              
+##  7 ""                  Independent         Bob Quast          0.4%              
+##  8 ""                  Write-in            Other              0.1%              
+##  9 "Total Votes"       Total Votes         Total Votes        Total Votes       
+## 10 "Source: Iowa Secr… Source: Iowa Secre… Source: Iowa Secr… Source: Iowa Secr…
+## # … with 1 more variable: U.S. Senate, Iowa General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Kansas,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Kans… `U.S. Senate, Kans… `U.S. Senate, Kans… `U.S. Senate, Kan…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Pat Roberts  Incum… 53.1%             
+## 3 ""                  Independent         Greg Orman          42.5%             
+## 4 ""                  Libertarian         Randall Batson      4.3%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Kansas Se… Source: Kansas Sec… Source: Kansas Sec… Source: Kansas Se…
+## # … with 1 more variable: U.S. Senate, Kansas General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Kentucky,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Kent… `U.S. Senate, Kent… `U.S. Senate, Kent… `U.S. Senate, Ken…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Mitch McConnell  I… 56.2%             
+## 3 ""                  Democratic          Alison Lundergan G… 40.7%             
+## 4 ""                  Libertarian         David Patterson     3.1%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Kentucky … Source: Kentucky S… Source: Kentucky S… Source: Kentucky …
+## # … with 1 more variable: U.S. Senate, Kentucky General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Louisiana,_2014`
+## # A tibble: 5 × 5
+##   `U.S. Senate, Loui… `U.S. Senate, Loui… `U.S. Senate, Loui… `U.S. Senate, Lou…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Mary Landrieu Incu… 44.1%             
+## 3 ""                  Republican          Bill Cassidy        55.9%             
+## 4 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 5 "Source: Louisiana… Source: Louisiana … Source: Louisiana … Source: Louisiana…
+## # … with 1 more variable: U.S. Senate, Louisiana General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Maine,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Main… `U.S. Senate, Main… `U.S. Senate, Main… `U.S. Senate, Mai…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Susan Collins  Inc… 67%               
+## 3 ""                  Democratic          Shenna Bellows      30.8%             
+## 4 ""                  Other               Other               0%                
+## 5 ""                  Blank               None                2.1%              
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: Maine Sec… Source: Maine Secr… Source: Maine Secr… Source: Maine Sec…
+## # … with 1 more variable: U.S. Senate, Maine General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Massachusetts,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Mass… `U.S. Senate, Mass… `U.S. Senate, Mass… `U.S. Senate, Mas…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Ed Markey  Incumbe… 59%               
+## 3 ""                  Republican          Brian Herr          36.2%             
+## 4 ""                  Write-in            Other               0.1%              
+## 5 ""                  Blank               None                4.7%              
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: Massachus… Source: Massachuse… Source: Massachuse… Source: Massachus…
+## # … with 1 more variable:
+## #   U.S. Senate, Massachusetts General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Michigan,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Mich… `U.S. Senate, Mich… `U.S. Senate, Mich… `U.S. Senate, Mic…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Gary Peters         54.6%             
+## 3 ""                  Republican          Terri Lynn Land     41.3%             
+## 4 ""                  Libertarian         Jim Fulner          2%                
+## 5 ""                  Green               Richard Matkin      0.8%              
+## 6 ""                  U.S. Taxpayers Par… Chris Wahmhoff      1.2%              
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: Michigan … Source: Michigan S… Source: Michigan S… Source: Michigan …
+## # … with 1 more variable: U.S. Senate, Michigan General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Minnesota,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Minn… `U.S. Senate, Minn… `U.S. Senate, Minn… `U.S. Senate, Min…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Al Franken  Incumb… 53.2%             
+## 3 ""                  Republican          Mike McFadden       42.9%             
+## 4 ""                  Libertarian         Heather Johnson     1.5%              
+## 5 ""                  Independence        Steve Carlson       2.4%              
+## 6 ""                  N/A                 Write-in            0%                
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: Minnesota… Source: Minnesota … Source: Minnesota … Source: Minnesota…
+## # … with 1 more variable: U.S. Senate, Minnesota General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Mississippi,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Miss… `U.S. Senate, Miss… `U.S. Senate, Miss… `U.S. Senate, Mis…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Thad Cochran  Incu… 59.9%             
+## 3 ""                  Democratic          Travis Childers     37.9%             
+## 4 ""                  Reform              Shawn O'Hara        2.2%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Mississip… Source: Mississipp… Source: Mississipp… Source: Mississip…
+## # … with 1 more variable: U.S. Senate, Mississippi General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Montana,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Mont… `U.S. Senate, Mont… `U.S. Senate, Mont… `U.S. Senate, Mon…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Steve Daines        57.8%             
+## 3 ""                  Democratic          Amanda Curtis       40.1%             
+## 4 ""                  Libertarian         Roger Roots         2.1%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Montana S… Source: Montana Se… Source: Montana Se… Source: Montana S…
+## # … with 1 more variable: U.S. Senate, Montana General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Nebraska,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Nebr… `U.S. Senate, Nebr… `U.S. Senate, Nebr… `U.S. Senate, Neb…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Ben Sasse           64.4%             
+## 3 ""                  Democratic          Dave Domina         31.5%             
+## 4 ""                  Independent         Jim Jenkins         2.9%              
+## 5 ""                  Independent         Todd Watson         1.2%              
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: Nebraska … Source: Nebraska S… Source: Nebraska S… Source: Nebraska …
+## # … with 1 more variable: U.S. Senate, Nebraska General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_New_Hampshire,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, New … `U.S. Senate, New … `U.S. Senate, New … `U.S. Senate, New…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Jeanne Shaheen  In… 51.5%             
+## 3 ""                  Republican          Scott Brown         48.2%             
+## 4 ""                  N/A                 Scatter             0.3%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: New Hamps… Source: New Hampsh… Source: New Hampsh… Source: New Hamps…
+## # … with 1 more variable:
+## #   U.S. Senate, New Hampshire General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_New_Jersey,_2014`
+## # A tibble: 10 × 5
+##    `U.S. Senate, New … `U.S. Senate, New … `U.S. Senate, New… `U.S. Senate, New…
+##    &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;              &lt;chr&gt;             
+##  1 "Party"             Party               Candidate          Vote %            
+##  2 ""                  Democratic          Cory Booker  Incu… 55.8%             
+##  3 ""                  Republican          Jeff Bell          42.3%             
+##  4 ""                  Libertarian         Joe Baratelli      0.9%              
+##  5 ""                  Independent         Jeff Boss          0.2%              
+##  6 ""                  Independent         Antonio N. Sabas   0.2%              
+##  7 ""                  Democratic-Republi… Eugene Lavergne    0.2%              
+##  8 ""                  Economic Growth     Hank Schroeder     0.3%              
+##  9 "Total Votes"       Total Votes         Total Votes        Total Votes       
+## 10 "Source: New Jerse… Source: New Jersey… Source: New Jerse… Source: New Jerse…
+## # … with 1 more variable: U.S. Senate, New Jersey General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_New_Mexico,_2014`
+## # A tibble: 5 × 5
+##   `U.S. Senate, New … `U.S. Senate, New … `U.S. Senate, New … `U.S. Senate, New…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Tom Udall  Incumbe… 55.6%             
+## 3 ""                  Republican          Allen Weh           44.4%             
+## 4 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 5 "Source: New Mexic… Source: New Mexico… Source: New Mexico… Source: New Mexic…
+## # … with 1 more variable: U.S. Senate, New Mexico General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_North_Carolina,_2014`
+## # A tibble: 10 × 5
+##    `U.S. Senate, Nort… `U.S. Senate, Nort… `U.S. Senate, Nor… `U.S. Senate, Nor…
+##    &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;              &lt;chr&gt;             
+##  1 "Party"             Party               Candidate          Vote %            
+##  2 ""                  Democratic          Kay Hagan Incumbe… 47.3%             
+##  3 ""                  Republican          Thom Tillis        48.8%             
+##  4 ""                  Libertarian         Sean Haugh         3.7%              
+##  5 ""                  Write-in            John Rhodes        0%                
+##  6 ""                  Write-in            David Waddell      0%                
+##  7 ""                  Write-in            Barry Gurney       0%                
+##  8 ""                  Write-in            Write-in (miscell… 0.1%              
+##  9 "Total Votes"       Total Votes         Total Votes        Total Votes       
+## 10 "Source: North Car… Source: North Caro… Source: North Car… Source: North Car…
+## # … with 1 more variable:
+## #   U.S. Senate, North Carolina General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Oklahoma,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Okla… `U.S. Senate, Okla… `U.S. Senate, Okla… `U.S. Senate, Okl…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Jim Inhofe  Incumb… 68%               
+## 3 ""                  Democratic          Matt Silverstein    28.5%             
+## 4 ""                  Independent         Ray Woods           1.2%              
+## 5 ""                  Independent         Aaron DeLozier      0.9%              
+## 6 ""                  Independent         Joan Farr           1.3%              
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: Oklahoma … Source: Oklahoma S… Source: Oklahoma S… Source: Oklahoma …
+## # … with 1 more variable: U.S. Senate, Oklahoma General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Oregon,_2014`
+## # A tibble: 9 × 5
+##   `U.S. Senate, Oreg… `U.S. Senate, Oreg… `U.S. Senate, Oreg… `U.S. Senate, Ore…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Jeff Merkley  Incu… 55.7%             
+## 3 ""                  Republican          Monica Wehby        36.9%             
+## 4 ""                  Libertarian         Mike Montchalin     3.1%              
+## 5 ""                  Constitution        James Leuenberger   1.7%              
+## 6 ""                  Green               Christina Jean Lugo 2.2%              
+## 7 ""                  Miscellaneous       Miscellaneous       0.5%              
+## 8 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 9 "Source: Oregon Se… Source: Oregon Sec… Source: Oregon Sec… Source: Oregon Se…
+## # … with 1 more variable: U.S. Senate, Oregon General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Rhode_Island,_2014`
+## # A tibble: 6 × 5
+##   `U.S. Senate, Rhod… `U.S. Senate, Rhod… `U.S. Senate, Rhod… `U.S. Senate, Rho…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Jack Reed  Incumbe… 70.6%             
+## 3 ""                  Republican          Mark Zaccaria       29.2%             
+## 4 ""                  N/A                 Write-in            0.2%              
+## 5 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 6 "Source: Rhode Isl… Source: Rhode Isla… Source: Rhode Isla… Source: Rhode Isl…
+## # … with 1 more variable:
+## #   U.S. Senate, Rhode Island General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_South_Carolina,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Sout… `U.S. Senate, Sout… `U.S. Senate, Sout… `U.S. Senate, Sou…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Lindsey Graham  In… 55.3%             
+## 3 ""                  Democratic          Brad Hutto          37.6%             
+## 4 ""                  Libertarian         Victor Kocher       2.8%              
+## 5 ""                  Independent         Thomas Ravenel      3.9%              
+## 6 ""                  N/A                 Write-in            0.4%              
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: South Car… Source: South Caro… Source: South Caro… Source: South Car…
+## # … with 1 more variable:
+## #   U.S. Senate, South Carolina General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_South_Dakota,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Sout… `U.S. Senate, Sout… `U.S. Senate, Sout… `U.S. Senate, Sou…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Mike Rounds         50.4%             
+## 3 ""                  Democratic          Rick Weiland        29.5%             
+## 4 ""                  Independent         Larry Pressler      17.1%             
+## 5 ""                  Independent         Gordon Howie        3%                
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: South Dak… Source: South Dako… Source: South Dako… Source: South Dak…
+## # … with 1 more variable:
+## #   U.S. Senate, South Dakota General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Tennessee,_2014`
+## # A tibble: 16 × 5
+##    `U.S. Senate, Tenn… `U.S. Senate, Tenn… `U.S. Senate, Ten… `U.S. Senate, Ten…
+##    &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;              &lt;chr&gt;             
+##  1 "Party"             "Party"             "Candidate"        "Vote %"          
+##  2 ""                  "Republican"        "Lamar Alexander … "61.9%"           
+##  3 ""                  "Democratic"        "Gordon Ball"      "31.9%"           
+##  4 ""                  "Independent"       "Ed Gauthier"      "0.2%"            
+##  5 ""                  "Independent"       "Bartholomew Phil… "0.2%"            
+##  6 ""                  "Independent"       "C. Salekin"       "0.1%"            
+##  7 ""                  "Independent"       "Danny Page"       "0.6%"            
+##  8 ""                  "Independent"       "Eric Schechter"   "0.1%"            
+##  9 ""                  "Constitution"      "Joe Wilmoth"      "2.6%"            
+## 10 ""                  "Independent"       "Joshua James"     "0.4%"            
+## 11 ""                  "Independent"       "Rick Tyler"       "0.4%"            
+## 12 ""                  "Tea Party"         "Tom Emerson, Jr." "0.8%"            
+## 13 ""                  "Green"             "Martin Pleasant"  "0.9%"            
+## 14 ""                  "Write-in"          "Erin Kent Magee"  "0%"              
+## 15 "Total Votes"       "Total Votes"       "Total Votes"      "Total Votes"     
+## 16 "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hou… "Source: U.S. Hou…
+## # … with 1 more variable: U.S. Senate, Tennessee General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Texas,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Texa… `U.S. Senate, Texa… `U.S. Senate, Texa… `U.S. Senate, Tex…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             "Party"             "Candidate"         "Vote %"          
+## 2 ""                  "Republican"        "John Cornyn  Incu… "61.6%"           
+## 3 ""                  "Democratic"        "David Alameel"     "34.4%"           
+## 4 ""                  "Libertarian"       "Rebecca Paddock"   "2.9%"            
+## 5 ""                  "Green"             "Emily Marie Sanch… "1.2%"            
+## 6 ""                  "Write-in"          "Mohammed Tahiro"   "0%"              
+## 7 "Total Votes"       "Total Votes"       "Total Votes"       "Total Votes"     
+## 8 "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hou…
+## # … with 1 more variable: U.S. Senate, Texas General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Virginia,_2014`
+## # A tibble: 7 × 5
+##   `U.S. Senate, Virg… `U.S. Senate, Virg… `U.S. Senate, Virg… `U.S. Senate, Vir…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Democratic          Mark Warner  Incum… 49.1%             
+## 3 ""                  Republican          Ed Gillespie        48.3%             
+## 4 ""                  Libertarian         Robert Sarvis       2.4%              
+## 5 ""                  N/A                 write-in            0.1%              
+## 6 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 7 "Source: Virginia … Source: Virginia D… Source: Virginia D… Source: Virginia …
+## # … with 1 more variable: U.S. Senate, Virginia General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_West_Virginia,_2014`
+## # A tibble: 9 × 5
+##   `U.S. Senate, West… `U.S. Senate, West… `U.S. Senate, West… `U.S. Senate, Wes…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             "Party"             "Candidate"         "Vote %"          
+## 2 ""                  "Republican"        "Shelley Moore Cap… "62.1%"           
+## 3 ""                  "Democratic"        "Natalie Tennant"   "34.5%"           
+## 4 ""                  "Libertarian"       "John Buckley"      "1.6%"            
+## 5 ""                  "Constitution"      "Phil Hudok"        "0.6%"            
+## 6 ""                  "Mountain"          "Bob Henry Baber"   "1.2%"            
+## 7 ""                  "N/A"               "Write-ins"         "0%"              
+## 8 "Total Votes"       "Total Votes"       "Total Votes"       "Total Votes"     
+## 9 "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hous… "Source: U.S. Hou…
+## # … with 1 more variable:
+## #   U.S. Senate, West Virginia General Election, 2014 &lt;chr&gt;
+## 
+## $`/United_States_Senate_elections_in_Wyoming,_2014`
+## # A tibble: 8 × 5
+##   `U.S. Senate, Wyom… `U.S. Senate, Wyom… `U.S. Senate, Wyom… `U.S. Senate, Wyo…
+##   &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;             
+## 1 "Party"             Party               Candidate           Vote %            
+## 2 ""                  Republican          Mike Enzi  Incumbe… 72.2%             
+## 3 ""                  Democratic          Charlie Hardy       17.4%             
+## 4 ""                  Independent         Curt Gottshall      7.9%              
+## 5 ""                  Libertarian         Joe Porambo         2.2%              
+## 6 ""                  N/A                 Write-in            0.3%              
+## 7 "Total Votes"       Total Votes         Total Votes         Total Votes       
+## 8 "Source: Wyoming S… Source: Wyoming Se… Source: Wyoming Se… Source: Wyoming S…
+## # … with 1 more variable: U.S. Senate, Wyoming General Election, 2014 &lt;chr&gt;
+```
+
+---
+
+- Still not perfect but a lot of the way there
+- Would need to figure out how to strip out and organize all of these together into a useful data frame.
+
+---
+
+## Before I turn it over to you ....
+
+- Some of these lines of code above took me an hour to get right.
+- You just have to poke around.
+- Look for examples and tutorials and stackoverflow threads
+- Ask questions on slack.  You are not dumb. This can be very tricky.
+
+
+---
+## Who studies political parties?
+
+So let's go look at this:
+
+https://scholar.google.com/scholar?hl=en&amp;as_sdt=7%2C26&amp;q=political+parties&amp;btnG=
+
+
+---
+
+
+```r
+gs_url&lt;-"https://scholar.google.com/scholar?hl=en&amp;as_sdt=7%2C26&amp;q=political+parties&amp;btnG="
+pg1&lt;-gs_url%&gt;%
+  read_html()%&gt;%
+  html_nodes(".gs_fl , .gs_rs , .gs_a , .gs_rt") %&gt;%
+  html_text()
+pg1
+```
+
+```
+##  [1] "[BOOK][B] Political parties"                                                                                                                                                                               
+##  [2] "W Cross - 2011 - books.google.com"                                                                                                                                                                         
+##  [3] "… with parties in other Western democracies. A crucial and timely overview of political parties, \n… parties are falling short in terms of benchmarks set forth by the Canadian Democratic Audit. …"       
+##  [4] "Save Cite Cited by 230 Related articles All 2 versions  Library Search "                                                                                                                                   
+##  [5] "[BOOK][B] Why parties?: The origin and transformation of political parties in America"                                                                                                                     
+##  [6] "JH Aldrich - 1995 - books.google.com"                                                                                                                                                                      
+##  [7] "… given our institutions can we understand political parties. … use the parties), cover the \nformative period of political parties … , and establish the form of parties and the basic nature of the …"   
+##  [8] "Save Cite Cited by 4411 Related articles All 2 versions  Library Search "                                                                                                                                  
+##  [9] "[PDF] lse.ac.ukGet it! @ WU"                                                                                                                                                                               
+## [10] "A model of political parties"                                                                                                                                                                              
+## [11] "G Levy - Journal of Economic theory, 2004 - Elsevier"                                                                                                                                                      
+## [12] "… to a scenario in which parties do not exist and society reaches a political outcome in the … \nnew model of endogenous political parties. A main feature of political parties is that they are …"        
+## [13] "Save Cite Cited by 303 Related articles All 10 versions Web of Science: 95  GetIt@Becker Library Search "                                                                                                  
+## [14] "Toward a comparative study of political parties"                                                                                                                                                           
+## [15] "S Neumann - Comparative Government, 1969 - Springer"                                                                                                                                                       
+## [16] "… and in their conscious influence on political forces, do parties gain meaning and importance… \nof modern political parties is closely tied up with the rise of a parliament. When political …"          
+## [17] "Save Cite Cited by 449 Related articles  Check Library Holdings Library Holdings Becker "                                                                                                                  
+## [18] "[BOOK][B] Political parties and democracy"                                                                                                                                                                 
+## [19] "L Diamond, R Gunther - 2001 - books.google.com"                                                                                                                                                            
+## [20] "Political parties are one of the core institutions of democracy. But in democracies … in parties. \nIn membership, organization, and popular involvement and commitment, political parties are …"          
+## [21] "Save Cite Cited by 490 Related articles  Library Search "                                                                                                                                                  
+## [22] "[BOOK][B] Political parties: organization and power"                                                                                                                                                       
+## [23] "A Panebianco, A Hirschman, C Maier - 1988 - books.google.com"                                                                                                                                              
+## [24] "… As a fresh treatment of a central issue in political science, this distinctive and significant \ncontribution to the theory of political parties will appeal widely to political scientists and …"       
+## [25] "Save Cite Cited by 4331 Related articles  Library Search "                                                                                                                                                 
+## [26] "[HTML] annualreviews.orgFull View"                                                                                                                                                                         
+## [27] "Political parties and democracy"                                                                                                                                                                           
+## [28] "SC Stokes - Annual Review of Political Science, 1999 - annualreviews.org"                                                                                                                                  
+## [29] "… currents of research about political parties in postwar political science. … political parties, \nwe need better, more social-scientifically informed historical research into the origins of parties (…"
+## [30] "Save Cite Cited by 314 Related articles All 8 versions Web of Science: 73  Get it! @ WU Library Holdings Becker "                                                                                          
+## [31] "[PDF] degruyter.com"                                                                                                                                                                                       
+## [32] "Political parties and the state"                                                                                                                                                                           
+## [33] "M Shefter - Political Parties and the State, 1993 - degruyter.com"                                                                                                                                         
+## [34] "… THIS BOOK analyzes the conditions under which political parties emerge, and the forces … political parties in the United States, although to clarify the distinctiveness of American parties…"           
+## [35] "Save Cite Cited by 967 Related articles All 8 versions  Library Search "                                                                                                                                   
+## [36] "[PDF] geser.net"                                                                                                                                                                                           
+## [37] "Political parties as campaign organizations"                                                                                                                                                               
+## [38] "DM Farrell, P Webb - Parties without Partisans. London/New York, 2000 - books.google.com"                                                                                                                  
+## [39] "Elections lie at the heart of the relationship between parties and … parties and elections, it is \nimportant to have a clear idea of how parties operate in elections and elections affect parties…"      
+## [40] "Save Cite Cited by 757 Related articles All 5 versions  "                                                                                                                                                  
+## [41] "[PDF] jstor.orgGet it! @ WU"                                                                                                                                                                               
+## [42] "Political parties and macroeconomic policy"                                                                                                                                                                
+## [43] "DA Hibbs - American political science review, 1977 - cambridge.org"                                                                                                                                        
+## [44] "This study examines postwar patterns in macroeconomic policies and outcomes associated \nwith left-and right-wing governments in capitalist democracies. It argues that the objective …"                   
+## [45] "Save Cite Cited by 4955 Related articles All 12 versions Web of Science: 1376  Library Holdings Becker "
+```
+
+---
+
+## Group project
+
+1. Build a dataset of articles/books/authors under this tag.
+2. Record the number of citations for each entry.
+3. Give me a boxplot of the *logged* number of citations.
+4. Go through multiple pages.  You might be stopped.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
