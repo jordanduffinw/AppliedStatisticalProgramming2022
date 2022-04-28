@@ -1,0 +1,13 @@
+Package: ps6EBMA
+Type: Package
+Title: Problem Set 6 Rcpp package
+Version: 1.0
+Date: 2022-04-28
+Author: JDW
+Maintainer: JDW <jordan.d.wong@wustl.edu>
+Description: No
+License: GPL (>= 2)
+Imports:
+    Rcpp (>= 0.11.6)
+LinkingTo: Rcpp
+RoxygenNote: 7.1.2

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Basics on APIs</title>
+    <meta charset="utf-8" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Basics on APIs
+### <div class="line-block">Jacob M. Montgomery<br />
+<em>Washington University in St. Louis</em><br />
+<em>Department of Political Science</em></div>
+### Lecture 25
+
+---
+
+
+&lt;style type="text/css"&gt;
+body, td {
+   font-size: 14px;
+}
+code.r{
+  font-size: 14px;
+}
+pre {
+  font-size: 4px;
+}
+&lt;/style&gt;
+
+
+## Orientation for this component
+
+Last time
+
+1. Getting data from the web (basics)
+2. Getting data from the web (more tips)
+
+--
+
+Now
+
+
+1. **Getting data from APIs**
+
+--
+
+Next
+
+YOU ARE DONE!!
+
+
+--
+
+But Really
+
+**Work on your group projects**
+
+
+---
+## Getting started
+
+- Application program interfaces (APIs) are a way for people (and programs) to access data in standard format 
+- Allows others to build products/software around your data without full access to your data.
+- Allows for sharing of data in a controlled way.
+    - Only access at a given rate
+    - Only access pre-specified fields
+- Usually much more systematic and organized than webscraping
+    - But also more powerful (can search their entire dataset)
+    - Data comes back with expected structure
+    - Documentation!!
+- Huge enterprises like OpenSecrets, Twitter, Reddit, Wikipedia, and much more provide these.
+- Could be used for making "live" webpages that re-render some kind of data viz. when a page is refreshed to represent changing data. 
+
+
+---
+## Remembering from last time
+
+
+- We briefly discussed using `http` including commands
+
+- `GET`, `POST`, and `PUT` will give you much of what you need.
+
+- We also learned about the JSON object format, which is similar to a list in R.
+
+---
+
+- This time we are going to use the `httr` and `jsonlite` packages.
+
+- The overall enterprise is to:
+    1. Use `http` so pass the right arguments to the right API endpint.
+    2. Get a JSON object back.
+    3. Optionally use that result to structure a query to another endpoint.
+    4. Repeat (3) until you have the data you want.
+
+---
+
+## Some API basics/terminology
+
+- APIs have *endpoints* -- think of these as function that are available.
+    - In the documentation (which you should read) it will explain what arguments these endpoints accept.
+    - These are (sometimes) passed in via the `http` request.
+    - They will then return to you a message (did it work) and an object 
+    
+----
+    
+- Most APIs have *rate limits* that control how much data they will return to you.  Try not to wine about people who are giving you free data.
+- APIs typically *time out* if your request takes too long to execture, or else the endpint might have a workaround.
+- Many will require that you have *authentication* often using a *key*
+    - Note that some (e.g., Open Secrets and Twitter) require you to register or even apply
+
+---
+## Rough outline for today
+
+- I'll run through a very simple toy example
+- We'll do something slightly more complex with the open secrets API.  
+    - You'll need to register on your own to follow this example fully.
+- The only assignment we will have is I'd like each of you to identify *one* potentially interseting API for the class.  Bonus if you show the result of a query.
+
+---
+## Where is the space station?
+
+- Here is a silly little API that tell us at any given time where the International Space Station is located.
+- http://open-notify.org/
+- If you go to the right url, you can see the answer:
+http://api.open-notify.org/iss-now.json
+
+--
+
+- JSON object organized as key: value pairs
+
+
+---
+
+- "timestamp": 1587069040, 
+- "message": "success"
+-  "iss_position": 
+    * "latitude": "-49.1436"
+    * "longitude": "25.2204"
+
+----
+
+- Note that the last elment (iss_position) is itself composes of two elements.
+
+
+---
+
+So we are going to:
+1. Send a "GET" request
+2. Receive:
+    
+      a. A response code 
+      
+      b. Response data
+
+
+
+```r
+library("httr"); library("jsonlite")
+iss=GET("http://api.open-notify.org/iss-now.json")
+length(iss)
+```
+
+```
+## [1] 10
+```
+---
+
+- Not really the same as just navigating there.
+- 200 is the "status response" and indicates success.
+- Also includes a lot of details about the call (e.g., time and GET command)
+
+--
+
+- But the actual output we wanted is still there
+- And we can pull this out as a "list of lists"
+
+
+```r
+library("httr"); library("jsonlite")
+fromJSON(rawToChar(iss$content))
+```
+
+```
+## $iss_position
+## $iss_position$longitude
+## [1] "-0.4928"
+## 
+## $iss_position$latitude
+## [1] "31.4395"
+## 
+## 
+## $message
+## [1] "success"
+## 
+## $timestamp
+## [1] 1651028125
+```
+
+---
+
+## End part A
+
+Go play!  See if you can figure out how many people are currently in space.
+
+http://open-notify.org/Open-Notify-API/People-In-Space/
+
+---
+
+## APIs with arguments
+
+- So this one is designed to tell you when the ISS is set to pass over a specific location
+
+http://open-notify.org/Open-Notify-API/ISS-Pass-Times/
+
+- But it requires parameters, just like arguments for a function.
+- We need:
+    - Latitude 
+    - Longitude
+- We could try to hack together the url ourselves    
+    
+http://api.open-notify.org/iss-pass.json?lat=40.7&amp;lon=-74
+
+- But `GET` will do that for us
+
+---
+
+
+
+```r
+iss_pass=GET("http://api.open-notify.org/iss-pass.json", 
+             query=list(lat=38.6486009, lon=-90.3128798, n=1))
+fromJSON(rawToChar(iss_pass$content))
+```
+
+```
+## $message
+## [1] "success"
+## 
+## $request
+## $request$altitude
+## [1] 100
+## 
+## $request$datetime
+## [1] 1651026246
+## 
+## $request$latitude
+## [1] 38.6486
+## 
+## $request$longitude
+## [1] -90.31288
+## 
+## $request$passes
+## [1] 1
+## 
+## 
+## $response
+##   duration   risetime
+## 1      373 1651044583
+```
+
+- This is when the ISS will pass over Seigle Hall
+
+
+
+---
+
+## Ok that's fun, but kind of dumb
+
+- Let's go look at the Google civic API
+
+https://developers.google.com/civic-information/docs/v2/representatives/representativeInfoByAddress
+
+
+- And look it has a handy GUI thing
+
+---
+
+### Well ... let's look some more
+
+https://console.developers.google.com/apis/credentials?pli=1
+
+
+- You are going to need to get your authentication key
+- And you you have to click a button in their system to confirm/authorize it.
+- But you can borrow mine for now.
+- Let's go back and look at this
+
+https://developers.google.com/civic-information/docs/v2/representatives/representativeInfoByAddress
+
+
+
+---
+
+
+
+
+```r
+myKey="AIzaSyDkCLZcCeC_Uc0d2ItcBBTUqJgk7Pl4ivQ"
+
+SK&lt;-GET("https://www.googleapis.com/civicinfo/v2/representatives",
+         query=list(address="6186 McPherson Ave. St. Louis",
+                    includeOffices="true",
+                    levels="country",
+                    roles="legislatorLowerBody", 
+                    key="AIzaSyDkCLZcCeC_Uc0d2ItcBBTUqJgk7Pl4ivQ"))
+SK
+```
+
+```
+## Response [https://www.googleapis.com/civicinfo/v2/representatives?address=6186%20McPherson%20Ave.%20St.%20Louis&amp;includeOffices=true&amp;levels=country&amp;roles=legislatorLowerBody&amp;key=AIzaSyDkCLZcCeC_Uc0d2ItcBBTUqJgk7Pl4ivQ]
+##   Date: 2022-04-27 02:55
+##   Status: 200
+##   Content-Type: application/json; charset=UTF-8
+##   Size: 1.68 kB
+## {
+##   "normalizedInput": {
+##     "line1": "6186 McPherson Avenue",
+##     "city": "St. Louis",
+##     "state": "MO",
+##     "zip": "63108"
+##   },
+##   "kind": "civicinfo#representativeInfoResponse",
+##   "divisions": {
+##     "ocd-division/country:us/state:mo/cd:1": {
+## ...
+```
+
+
+
+---
+
+
+
+```r
+fromJSON(rawToChar(SK$content))
+```
+
+```
+## $normalizedInput
+## $normalizedInput$line1
+## [1] "6186 McPherson Avenue"
+## 
+## $normalizedInput$city
+## [1] "St. Louis"
+## 
+## $normalizedInput$state
+## [1] "MO"
+## 
+## $normalizedInput$zip
+## [1] "63108"
+## 
+## 
+## $kind
+## [1] "civicinfo#representativeInfoResponse"
+## 
+## $divisions
+## $divisions$`ocd-division/country:us/state:mo/cd:1`
+## $divisions$`ocd-division/country:us/state:mo/cd:1`$name
+## [1] "Missouri's 1st congressional district"
+## 
+## $divisions$`ocd-division/country:us/state:mo/cd:1`$officeIndices
+## [1] 0
+## 
+## 
+## 
+## $offices
+##                  name                            divisionId  levels
+## 1 U.S. Representative ocd-division/country:us/state:mo/cd:1 country
+##                 roles officialIndices
+## 1 legislatorLowerBody               0
+## 
+## $officials
+##        name                                                     address
+## 1 Cori Bush 1016 Longworth House Office Building, Washington, DC, 20515
+##              party         phones
+## 1 Democratic Party (202) 225-2406
+##                                                               urls
+## 1 https://bush.house.gov/, https://en.wikipedia.org/wiki/Cori_Bush
+##                              channels
+## 1 Facebook, Twitter, RepCori, RepCori
+##                                                                                                                                    geocodingSummaries
+## 1 1016 Longworth House Office Building, Washington, DC 20515, 9923602795423060423, 18411854889169102830, typeCompoundBuilding, 123.49476568652, FALSE
+```
+
+---
+
+
+
+```r
+fromJSON(rawToChar(SK$content))$officials
+```
+
+```
+##        name                                                     address
+## 1 Cori Bush 1016 Longworth House Office Building, Washington, DC, 20515
+##              party         phones
+## 1 Democratic Party (202) 225-2406
+##                                                               urls
+## 1 https://bush.house.gov/, https://en.wikipedia.org/wiki/Cori_Bush
+##                              channels
+## 1 Facebook, Twitter, RepCori, RepCori
+##                                                                                                                                    geocodingSummaries
+## 1 1016 Longworth House Office Building, Washington, DC 20515, 9923602795423060423, 18411854889169102830, typeCompoundBuilding, 123.49476568652, FALSE
+```
+
+
+---
+
+### End Part B
+
+- See if you can get this to work for a different address.
+- If you want to go crazy try and get this endpoint to work instead
+
+https://developers.google.com/civic-information/docs/v2/elections/voterInfoQuery
+
+
+- use electionID="2000"
+
+
+
+---
+
+### Tasks
+
+
+Group work:
+
+- I want you have time to work as a group on your project.
+- I will come around and talk to each group to see how we are doing.
+
+
+Grading:
+
+- Working on grading midterms.
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
